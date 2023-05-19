@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from ..process import Process
+from process import Process
 
 
 class ProcessScheduler(ABC):

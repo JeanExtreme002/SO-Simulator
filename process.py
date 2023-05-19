@@ -1,5 +1,4 @@
 from typing import Optional
-from random import randint
 
 
 class Process(object):

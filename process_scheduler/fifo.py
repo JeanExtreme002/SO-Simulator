@@ -1,5 +1,5 @@
-from .abstract import ProcessScheduler
-from ..process import Process
+from process_scheduler.abstract import ProcessScheduler
+from process import Process
 
 
 class FIFOProcessScheduler(ProcessScheduler):
