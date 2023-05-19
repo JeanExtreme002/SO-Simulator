@@ -1,6 +1,13 @@
-from app import Application
+from app import Application, MenuWindow
 
 if __name__ == "__main__":
-    application = Application()
-    application.build()
-    application.run()
+    menu = MenuWindow()
+    menu.build()
+    menu.run()
+
+    if not menu.closed:
+        algorithm, quantum = menu.get_config()
+
+        application = Application()
+        application.build()
+        application.run(algorithm, quantum)

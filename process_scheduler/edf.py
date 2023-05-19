@@ -1,5 +1,7 @@
 from process_scheduler.abstract import ProcessScheduler
+from process import Process
 
 
 class EDFProcessScheduler(ProcessScheduler):
-    pass
+    def run(self) -> Process:
+        pass
