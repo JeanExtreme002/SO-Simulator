@@ -7,11 +7,12 @@ class Application(Tk):
     """
     def __init__(self, title: str = "Window", size: tuple[int] = (1280, 720)):
         super().__init__()
-        self.__title = title
-        self.__size = size
+
+        self.title(title)
+        self.geometry("{}x{}".format(*size))
 
     def build(self):
-        pass
+        self["bg"] = "white"
 
     def run(self):
-        pass
+        self.mainloop()
