@@ -34,9 +34,12 @@ class Application(Tk):
         """
         Adiciona um novo processo para o simulador.
         """
-        duration = int(self.__duration_entry.get())
+        duration = self.__duration_entry.get()
         deadline = self.__deadline_entry.get()
 
+        if not duration: return
+
+        duration = int(duration)
         deadline = int(deadline) if deadline else None
 
         process = Process(process_id = self.__process_count, duration = duration, deadline = deadline)  # Only for test. It must be replaced later.
@@ -100,7 +103,7 @@ class Application(Tk):
 
         # Adiciona o estado do processo ao histórico.
         if process:
-            self.__process_history[process.index][self.__history_length - 1] = process.color
+            self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():
@@ -116,29 +119,32 @@ class Application(Tk):
             for x in range(self.__history_length):
                 element = self.__process_history[y][x]
 
-                if type(element) is str: color = element
-                elif element == 1: color = "#555"
+                if type(element) is tuple:
+                    color = element[1]
                 else: continue
 
-                # Calcula o X2 do processo (x + width).
+                # Calcula o X1 do processo.
+                x1 = process_width * x + self.__history_border * x
+
+                # Calcula o Y1 do processo.
+                y1 = process_height * y + self.__history_border * y
+
+                # Calcula o X2 do processo (X1 + width).
                 x2 = process_width * x + self.__history_border * x + process_width
 
                 if x == self.__history_length - 1:
                     x2 = self.__canvas_width + 10
 
-                # Calcula o Y2 do processo (y + height).
+                # Calcula o Y2 do processo (X2 + height).
                 y2 = process_height * y + self.__history_border * y + process_height
 
                 if y == len(self.__process_history) - 1 and y >= self.__history_min_rows - 1:
                     y2 = self.__canvas_height + 10
 
-                # Desenha o processo.
-                self.__canvas.create_rectangle(
-                    process_width * x + self.__history_border * x,
-                    process_height * y + self.__history_border * y,
-                    x2, y2,
-                    fill = color
-                )
+                # Desenha o processo com o seu ID.
+                self.__canvas.create_rectangle(x1, y1, x2, y2, fill = color)
+                self.__canvas.create_text((x1 + x2) / 2, (y1 + y2) / 2, text = element[0])
+
         self.__draw_grid(self.__last_process_list_length)
 
         # Move o histórico para a esquerda e repete a execução do método, após um determinado tempo.
