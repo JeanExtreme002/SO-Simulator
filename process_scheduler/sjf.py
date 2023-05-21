@@ -23,6 +23,7 @@ class SJFProcessScheduler(ProcessScheduler):
             processes.sort(key = lambda process: process.duration)
             process = processes[0]
 
+        process.run()
         self.__running = process
 
         if process.is_finished():
