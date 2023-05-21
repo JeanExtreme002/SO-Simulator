@@ -4,7 +4,7 @@ from process import Process
 
 
 class SJFProcessScheduler(ProcessScheduler):
-    __running = None
+    __process_running = None
 
     @property
     def name(self) -> str:
@@ -14,13 +14,13 @@ class SJFProcessScheduler(ProcessScheduler):
         super().remove_process(process)
 
         if process == self.__running:
-            self.__running = None
+            self.__process_running = None
 
     def run(self) -> Optional[Tuple[Optional[Process], Optional[List[Process]], bool]]:
         if not self.processes: return
 
         processes = self.processes
-        process = self.__running
+        process = self.__process_running
 
         # Se não houver processo em execução, ordena os processos pela duração e obtém o mais próximo de finalizar.
         if process is None:
@@ -28,7 +28,7 @@ class SJFProcessScheduler(ProcessScheduler):
             process = processes[0]
 
         process.run()
-        self.__running = process
+        self.__process_running = process
 
         if process.is_finished():
             self.remove_process(process)

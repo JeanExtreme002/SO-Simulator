@@ -100,11 +100,11 @@ class Application(Tk):
 
         # Executa o próximo processo.
         result = self.__process_scheduler.run()
-        process, asleep_processes = (result[0], result[1]) if result is not None else (None, None)
+        process, asleep_processes, context_switching = (result[0], result[1], result[2]) if result is not None else (None, None, None)
 
         # Adiciona o estado do processo ao histórico.
-        if process:
-            self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
+        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#999")
+        elif process: self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():
