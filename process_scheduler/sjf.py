@@ -4,6 +4,7 @@ from process import Process
 
 
 class SJFProcessScheduler(ProcessScheduler):
+
     __process_running = None
 
     @property
