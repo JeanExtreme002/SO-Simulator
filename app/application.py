@@ -37,7 +37,8 @@ class Application(Tk):
         duration = self.__duration_entry.get()
         deadline = self.__deadline_entry.get()
 
-        if not duration: return
+        if not duration: return self.__duration_label.config(foreground = "red")
+        self.__duration_label.config(foreground = "black")
 
         duration = int(duration)
         deadline = int(deadline) if deadline else None
@@ -175,6 +176,14 @@ class Application(Tk):
                 self.__process_history[y][x] = self.__process_history[y][x + 1]
             self.__process_history[y][self.__history_length - 1] = None
 
+    def __validate_entry(self, string):
+        """
+        Valida a entrada do usuário na Entry.
+        """
+        for char in string:
+            if char not in "0123456789": return False
+        return True
+
     def build(self):
         """
         Constrói a parte gráfica da janela.
@@ -225,13 +234,17 @@ class Application(Tk):
         self.__duration_label = Label(self.__duration_frame, text = "Duração: ", background = "white")
         self.__duration_label.pack(side = "left")
 
+        self.__entry_reg = self.register(self.__validate_entry)
+
         self.__duration_entry = Entry(self.__duration_frame)
+        self.__duration_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__duration_entry.pack(side = "left")
 
         self.__deadline_label = Label(self.__add_process_frame, text="Deadline: ", background = "white")
         self.__deadline_label.pack(side="left")
 
         self.__deadline_entry = Entry(self.__add_process_frame)
+        self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
 
     def run(self, process_scheduler: ProcessScheduler, quantum: Union[int, None], interval: int = 1000):
