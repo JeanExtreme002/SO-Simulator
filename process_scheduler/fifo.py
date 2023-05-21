@@ -4,6 +4,10 @@ from process import Process
 
 
 class FIFOProcessScheduler(ProcessScheduler):
+    @property
+    def name(self) -> str:
+        return "First In First Out (FIFO)"
+    
     def run(self) -> Optional[Tuple[Process, List[Process]]]:
         if not self.processes: return
 
