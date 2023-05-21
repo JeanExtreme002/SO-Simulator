@@ -1,4 +1,4 @@
-from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Tk
+from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Scrollbar, Tk
 from typing import Tuple
 
 from process import Process
@@ -118,7 +118,7 @@ class Application(Tk):
         process, asleep_processes, context_switching = (result[0], result[1], result[2]) if result is not None else (None, None, None)
 
         # Adiciona o estado do processo ao histórico.
-        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#555")
+        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#333")
         elif process: self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
@@ -270,7 +270,11 @@ class Application(Tk):
         self.__process_list_frame.pack(padx = 13, expand = True, fill ="x")
 
         self.__process_list_box = Listbox(self.__process_list_frame, height = self.__history_min_rows + 2)
-        self.__process_list_box.pack(expand = True, fill ="x")
+        self.__process_list_box.pack(side = "left", expand = True, fill ="x")
+
+        self.__process_list_box_scrollbar = Scrollbar(self.__process_list_frame)
+        self.__process_list_box_scrollbar.pack(side = "right", fill = "both")
+        self.__process_list_box.config(yscrollcommand= self.__process_list_box_scrollbar.set)
 
         # Widgets para receber as entradas do usuário para adicionar um novo processo.
         self.__add_process_frame = Frame(self.__main_frame)
