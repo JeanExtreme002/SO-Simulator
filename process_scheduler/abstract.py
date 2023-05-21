@@ -4,9 +4,10 @@ from process import Process
 
 
 class ProcessScheduler(ABC):
-    def __init__(self, quantum: Optional[int] = None):
+    def __init__(self, quantum: Optional[int] = None, context_switching: Optional[int] = None):
         self.__process_list = list()
         self.__quantum = quantum
+        self.__context_switching = context_switching
 
     def __len__(self) -> int:
         return len(self.__process_list)
@@ -22,6 +23,10 @@ class ProcessScheduler(ABC):
     @property
     def quantum(self):
         return self.__quantum
+
+    @property
+    def context_switching(self):
+        return self.__context_switching
 
     def add_process(self, process: Process):
         """

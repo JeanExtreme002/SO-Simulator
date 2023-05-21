@@ -6,9 +6,8 @@ if __name__ == "__main__":
     menu.run()
 
     if not menu.closed:
-        algorithm, quantum, switching = menu.get_config()
+        process_scheduler = menu.get_process_scheduler()
 
-        application = Application(title = f"Simulador - {algorithm.name} Algorithm")
+        application = Application(title = f"Simulador - {process_scheduler.name} Algorithm")
         application.build()
-        print(algorithm, quantum, switching)
-        application.run(algorithm, quantum, switching)
+        application.run(process_scheduler)

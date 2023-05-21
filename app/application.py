@@ -247,14 +247,11 @@ class Application(Tk):
         self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
 
-    def run(self, process_scheduler: ProcessScheduler, quantum: Union[int, None], context_switching: Union[int, None], interval: int = 1000):
+    def run(self, process_scheduler: ProcessScheduler, interval: int = 1000):
         """
         Executa a aplicação principal, com sua parte gráfica.
         """
         self.__process_scheduler = process_scheduler
-        self.__quantum = quantum
-        self.__context_switching = context_switching
-
         self.__on_update_interval = interval
 
         self.after(self.__on_update_interval, self.__on_update)

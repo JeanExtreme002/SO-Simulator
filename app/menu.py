@@ -150,11 +150,11 @@ class MenuWindow(Tk):
         )
         self.__button.pack(pady = 10)
 
-    def get_config(self):
+    def get_process_scheduler(self):
         """
         Retorna as configurações enviadas pelo usuário.
         """
-        return self.__algorithm(), self.__quantum, self.__context_switching
+        return self.__algorithm(self.__quantum, self.__context_switching)
 
     def run(self):
         """
