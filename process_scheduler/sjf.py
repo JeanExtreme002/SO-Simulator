@@ -6,6 +6,10 @@ from process import Process
 class SJFProcessScheduler(ProcessScheduler):
     __running = None
 
+    @property
+    def name(self) -> str:
+        return "Shortest Job First (SJF)"
+
     def remove_process(self, process: Process):
         super().remove_process(process)
 

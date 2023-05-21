@@ -39,14 +39,17 @@ class Process(object):
         """
         return self.__deadline <= 0
 
-    def run(self, time: Optional[int] = 1):
+    def run(self, time: int = 1):
         """
         Executa o processo.
         :param time: tempo em que o processo permaneceu na CPU.
+        
+        :raises: TimeoutError se o tempo do deadline for excedido.
         """
         self.__duration -= time
+        self.wait(time)
 
-    def wait(self, time: Optional[int] = 1):
+    def wait(self, time: int = 1):
         """
         Informa que o processo deve esperar.
         :param time: tempo em que o processo espera.

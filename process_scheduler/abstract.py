@@ -10,6 +10,10 @@ class ProcessScheduler(ABC):
 
     def __len__(self) -> int:
         return len(self.__process_list)
+    
+    @property
+    def name(self) -> str:
+        return str()
 
     @property
     def processes(self) -> List[Process]:
