@@ -53,6 +53,8 @@ class Process(object):
 
         :raises: TimeoutError se o tempo do deadline for excedido.
         """
+        if self.__deadline is None: return
+
         self.__deadline -= time
 
         if self.has_died():

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from process import Process
 
 
@@ -20,12 +20,23 @@ class ProcessScheduler(ABC):
         return self.__quantum
 
     def add_process(self, process: Process):
+        """
+        Adiciona um processo.
+        """
         self.__process_list.append(process)
 
     def remove_process(self, process: Process):
+        """
+        Remove um processo.
+        """
         self.__process_list.remove(process)
 
     @abstractmethod
-    def run(self) -> Process:
+    def run(self) -> Optional[Tuple[Process, List[Process]]]:
+        """
+        Executa um processo.
+
+        :return: Retorna o processo executado e uma lista com os processos em espera.
+        """
         pass
 

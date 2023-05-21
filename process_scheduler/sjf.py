@@ -1,3 +1,4 @@
+from typing import List, Optional, Tuple
 from process_scheduler.abstract import ProcessScheduler
 from process import Process
 
@@ -11,7 +12,7 @@ class SJFProcessScheduler(ProcessScheduler):
         if process == self.__running:
             self.__running = None
 
-    def run(self) -> Process:
+    def run(self) -> Optional[Tuple[Process, List[Process]]]:
         if not self.processes: return
 
         processes = self.processes
@@ -27,6 +28,11 @@ class SJFProcessScheduler(ProcessScheduler):
         if process.is_finished():
             self.remove_process(process)
 
-        for process_asleep in processes:
-            if process_asleep.id != process.id:
-                process_asleep.wait()
+        asleep_processes = list()
+
+        for asleep_process in processes:
+            if asleep_process.id != process.id:
+                asleep_process.wait()
+                asleep_processes.append(asleep_process)
+
+        return process, asleep_processes
