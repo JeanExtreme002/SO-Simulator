@@ -40,7 +40,7 @@ class Application(Tk):
         duration = self.__duration_entry.get()
         deadline = self.__deadline_entry.get()
 
-        if not duration: return self.__duration_label.config(foreground = "red")
+        if not duration or not duration.replace("0", ""): return self.__duration_label.config(foreground = "red")
         self.__duration_label.config(foreground = "black")
 
         duration = int(duration)
@@ -117,9 +117,16 @@ class Application(Tk):
         result = self.__process_scheduler.run()
         process, asleep_processes, context_switching = (result[0], result[1], result[2]) if result is not None else (None, None, None)
 
+        # Adiciona o chaveamento realizado ao histórico.
+        if context_switching:
+            self.__process_history[process.index][self.__history_length - 1] = ("switch", "#333")
+
         # Adiciona o estado do processo ao histórico.
-        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#333")
-        elif process: self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
+        elif process:
+            if process.has_died() and not process.color.endswith("0000"):
+                r, g, b = (random.randint(180, 255), 0, 0)  # Cor vermelha caso o deadline do process foi expirado.
+                process.color = f"#{r:02x}{g:02x}{b:02x}"
+            self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():

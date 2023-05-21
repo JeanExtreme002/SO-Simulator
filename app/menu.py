@@ -36,12 +36,12 @@ class MenuWindow(Tk):
 
         # Deve haver um quantum e um chaveamento para os algoritmos RR e EDF.
         if self.__algorithm in [RoundRobinProcessScheduler, EDFProcessScheduler]:
-            if len(self.__quantum) == 0:
+            if len(self.__quantum) == 0 or not self.__quantum.replace("0", ""):
                 self.__label_2["fg"] = "red"
                 return
             self.__label_2["fg"] = "black"
 
-            if len(self.__context_switching) == 0:
+            if len(self.__context_switching) == 0 or not self.__context_switching.replace("0", ""):
                 self.__label_3["fg"] = "red"
                 return
 
@@ -124,7 +124,7 @@ class MenuWindow(Tk):
         self.__frame_2["bg"] = "white"
         self.__frame_2.pack(pady = 10, expand = True, fill = "x")
 
-        self.__label_2 = Label(self.__frame_2, text = "Quantum do processador (inteiro):", bg = "white")
+        self.__label_2 = Label(self.__frame_2, text = "Quantum do processador (n > 0):", bg = "white")
         self.__label_2.pack(side = "left")
 
         self.__entry_2 = Entry(self.__frame_2, width = 4)
@@ -136,7 +136,7 @@ class MenuWindow(Tk):
         self.__frame_3["bg"] = "white"
         self.__frame_3.pack(expand = True, fill = "x")
 
-        self.__label_3 = Label(self.__frame_3, text = "Chaveamento do processador (inteiro):", bg = "white")
+        self.__label_3 = Label(self.__frame_3, text = "Tempo da sobrecarga (n > 0):", bg = "white")
         self.__label_3.pack(side = "left")
 
         self.__entry_3 = Entry(self.__frame_3, width = 4)
