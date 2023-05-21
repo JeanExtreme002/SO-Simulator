@@ -1,5 +1,5 @@
-from tkinter import Button, Canvas, Entry, Frame, Label, Tk
-from typing import Tuple, Union
+from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Tk
+from typing import Tuple
 
 from process import Process
 from process_scheduler import ProcessScheduler
@@ -16,9 +16,12 @@ class Application(Tk):
         super().__init__()
         self.__size = size
 
+        self.__generate_log_file = False
+        self.__log_filename = "process_log.txt"
+
         self.__history_length = 20
         self.__history_border = 1
-        self.__history_min_rows = 5
+        self.__history_min_rows = 6
 
         self.__process_history = []
         self.__process_list = []
@@ -43,7 +46,12 @@ class Application(Tk):
         duration = int(duration)
         deadline = int(deadline) if deadline else None
 
-        process = Process(process_id = self.__process_count, duration = duration, deadline = deadline)  # Only for test. It must be replaced later.
+        process = Process(
+            process_id = self.__process_count,
+            duration = duration,
+            deadline = deadline,
+            ignore_deadline_error = True
+        )
         process.index = len(self.__process_history)
         self.__process_count += 1
 
@@ -54,6 +62,13 @@ class Application(Tk):
         self.__process_history.append([None] * self.__history_length)
 
         self.__process_list.append(process)
+
+    def __append_to_log_file(self, string):
+        """
+        Adiciona ao arquivo de log uma string em uma linha.
+        """
+        with open(self.__log_filename, "a+", encoding = "UTF-8") as file:
+            file.write(string + "\n")
 
     def __draw_grid(self, length: int):
         """
@@ -103,13 +118,34 @@ class Application(Tk):
         process, asleep_processes, context_switching = (result[0], result[1], result[2]) if result is not None else (None, None, None)
 
         # Adiciona o estado do processo ao histórico.
-        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#999")
+        if context_switching: self.__process_history[process.index][self.__history_length - 1] = (str(), "#555")
         elif process: self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():
             if process.is_finished() and not any(self.__process_history[process.index]):
                 self.__remove_process(process)
+
+        # Atualiza o Listbox com as informações dos processos.
+        self.__process_list_box.delete(0, "end")
+
+        for process in sorted(self.__process_list, key = lambda process: process.id, reverse = True):
+            if result and process.id == result[0].id: state = f"em execução e restando {process.duration}s para terminar"
+            elif process.is_finished(): state = "finalizado"
+            else: state = f"em espera e restando {process.duration}s para terminar"
+
+            string = f"Processo ID:{process.id} está {state}. "
+
+            if process.has_died():
+                string += "O deadline foi atingido!"
+
+            elif not process.is_finished() and process.deadline is not None:
+                string += f"Falta {process.deadline}s do deadline para expirar."
+
+            if self.__generate_log_file: self.__append_to_log_file(string)
+            self.__process_list_box.insert(0, string)
+
+        if self.__generate_log_file: self.__append_to_log_file("=" * 80)
 
         # Calcula a largura e altura correta dos processos.
         process_width, process_height = self.__get_process_size_on_history(len(self.__process_history))
@@ -194,6 +230,7 @@ class Application(Tk):
         self.__main_frame["bg"] = "white"
         self.__main_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
+        # Widgets para mostrar o histórico.
         self.__canvas_label_frame = Frame(self.__main_frame)
         self.__canvas_label_frame["bg"] = "white"
         self.__canvas_label_frame.pack(expand = True, fill ="x")
@@ -208,7 +245,7 @@ class Application(Tk):
             self.__size[0] * 0.95 - (self.__size[0] * 0.95 % self.__history_length)
             + self.__history_border * (self.__history_length - 1)
         )
-        self.__canvas_height = self.__size[1] * 0.8
+        self.__canvas_height = self.__size[1] * 0.6
 
         self.__canvas = Canvas(
             self.__main_frame, width = self.__canvas_width, height = self.__canvas_height,
@@ -217,6 +254,25 @@ class Application(Tk):
         self.__draw_grid(self.__last_process_list_length)
         self.__canvas.pack(pady = 10)
 
+        # Widgets para mostrar a lista de processos e seus estados em texto.
+        self.__process_list_label_frame = Frame(self.__main_frame)
+        self.__process_list_label_frame["bg"] = "white"
+        self.__process_list_label_frame.pack(expand = True, fill ="x")
+
+        self.__process_list_label = Label(
+            self.__process_list_label_frame, text ="Processos:",
+            background = "white"
+        )
+        self.__process_list_label.pack(side = "left")
+
+        self.__process_list_frame = Frame(self.__main_frame)
+        self.__process_list_frame["bg"] = "white"
+        self.__process_list_frame.pack(padx = 13, expand = True, fill ="x")
+
+        self.__process_list_box = Listbox(self.__process_list_frame, height = self.__history_min_rows + 2)
+        self.__process_list_box.pack(expand = True, fill ="x")
+
+        # Widgets para receber as entradas do usuário para adicionar um novo processo.
         self.__add_process_frame = Frame(self.__main_frame)
         self.__add_process_frame["bg"] = "white"
         self.__add_process_frame.pack(pady = 10)
@@ -247,12 +303,13 @@ class Application(Tk):
         self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
 
-    def run(self, process_scheduler: ProcessScheduler, interval: int = 1000):
+    def run(self, process_scheduler: ProcessScheduler, interval: int = 1000, generate_log_file: bool = False):
         """
         Executa a aplicação principal, com sua parte gráfica.
         """
         self.__process_scheduler = process_scheduler
         self.__on_update_interval = interval
+        self.__generate_log_file = generate_log_file
 
         self.after(self.__on_update_interval, self.__on_update)
         self.mainloop()

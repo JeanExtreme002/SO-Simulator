@@ -25,6 +25,10 @@ class EDFProcessScheduler(ProcessScheduler):
             # Realiza o chaveamento.
             if self.__context_switching_time < self.context_switching:
                 self.__context_switching_time += 1
+
+                for process in self.processes:
+                    process.wait()
+
                 return self.__process_running, self.__queue[1:], True
 
             if len(self.__queue) <= 1:

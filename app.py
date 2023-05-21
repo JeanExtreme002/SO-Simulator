@@ -10,4 +10,4 @@ if __name__ == "__main__":
 
         application = Application(title = f"Simulador - {process_scheduler.name} Algorithm")
         application.build()
-        application.run(process_scheduler)
+        application.run(process_scheduler, generate_log_file = True)

@@ -6,7 +6,7 @@ class Process(object):
     Representa um processo no sistema operacional.
     """
 
-    def __init__(self, process_id: int, duration: int, deadline: Optional[int] = None):
+    def __init__(self, process_id: int, duration: int, deadline: Optional[int] = None, ignore_deadline_error: bool = False):
         """
         :param duration: Duração para o processo executar completamente na CPU.
         :param deadline: Tempo em que o processo necessita ser executado completamente.
@@ -14,6 +14,7 @@ class Process(object):
         self.__id = process_id
         self.__duration = duration
         self.__deadline = deadline
+        self.__ignore_deadline_error = ignore_deadline_error
 
     @property
     def id(self) -> int:
@@ -37,6 +38,7 @@ class Process(object):
         """
         Verifica se o tempo do deadline foi excedido.
         """
+        if self.__deadline is None: return False
         return self.__deadline <= 0
 
     def run(self, time: int = 1):
@@ -60,5 +62,5 @@ class Process(object):
 
         self.__deadline -= time
 
-        if self.has_died():
+        if self.has_died() and not self.__ignore_deadline_error:
             raise TimeoutError("The process is over!")
