@@ -4,7 +4,7 @@ from process import Process
 
 
 class FIFOProcessScheduler(ProcessScheduler):
-    def run(self) -> Optional[Tuple[Process, List[Process]]]:
+    def run(self) -> Optional[Tuple[Optional[Process], Optional[List[Process]], bool]]:
         if not self.processes: return
 
         process = self.processes[0]
@@ -18,4 +18,4 @@ class FIFOProcessScheduler(ProcessScheduler):
         for asleep_process in asleep_processes:
             asleep_process.wait()
 
-        return process, asleep_processes
+        return process, asleep_processes, False

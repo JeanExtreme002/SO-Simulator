@@ -12,7 +12,7 @@ class SJFProcessScheduler(ProcessScheduler):
         if process == self.__running:
             self.__running = None
 
-    def run(self) -> Optional[Tuple[Process, List[Process]]]:
+    def run(self) -> Optional[Tuple[Optional[Process], Optional[List[Process]], bool]]:
         if not self.processes: return
 
         processes = self.processes
@@ -36,4 +36,4 @@ class SJFProcessScheduler(ProcessScheduler):
                 asleep_process.wait()
                 asleep_processes.append(asleep_process)
 
-        return process, asleep_processes
+        return process, asleep_processes, False

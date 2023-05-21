@@ -32,7 +32,7 @@ class ProcessScheduler(ABC):
         self.__process_list.remove(process)
 
     @abstractmethod
-    def run(self) -> Optional[Tuple[Process, List[Process]]]:
+    def run(self) -> Optional[Tuple[Optional[Process], Optional[List[Process]], bool]]:
         """
         Executa um processo.
 

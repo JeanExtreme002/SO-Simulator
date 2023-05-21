@@ -6,8 +6,9 @@ if __name__ == "__main__":
     menu.run()
 
     if not menu.closed:
-        algorithm, quantum = menu.get_config()
+        algorithm, quantum, switching = menu.get_config()
 
         application = Application()
         application.build()
-        application.run(algorithm, quantum)
+        print(algorithm, quantum, switching)
+        application.run(algorithm, quantum, switching)
