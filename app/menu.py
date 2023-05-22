@@ -10,13 +10,23 @@ class MenuWindow(Tk):
     """
     Classe para criar uma tela inicial de menu.
     """
-    def __init__(self, title: str = "Window", size: tuple[int] = (350, 200)):
+    __NOT_REQUIRED_MESSAGE = "(not required)"
+
+    def __init__(self, title: str = "Window", size: tuple[int] = (350, 400)):
         super().__init__()
         self.__size = size
 
-        self.__algorithm = FIFOProcessScheduler
+        # Configurações relacionadas ao escalonador de processos.
+        self.__cpu_algorithm = FIFOProcessScheduler
         self.__context_switching = None
         self.__quantum = None
+
+        # Configurações relacionadas à paginação.
+        self.__memory_algorithm = None  # TODO: Replace it
+        self.__ram_memory_size = 200 * 1000
+        self.__memory_page_size = 4 * 1000
+        self.__page_per_process = 10
+
         self.__closed = True
 
         self.title(title)
@@ -34,12 +44,18 @@ class MenuWindow(Tk):
         self.__quantum = self.__entry_2.get()
         self.__context_switching = self.__entry_3.get()
 
+        self.__ram_memory_size = self.__entry_4.get()
+        self.__memory_page_size = self.__entry_5.get()
+        self.__page_per_process = self.__entry_6.get()
+
         # Deve haver um quantum e um chaveamento para os algoritmos RR e EDF.
-        if self.__algorithm in [RoundRobinProcessScheduler, EDFProcessScheduler]:
+        if self.__cpu_algorithm in [RoundRobinProcessScheduler, EDFProcessScheduler]:
+            self.__label_2["fg"] = "black"
+            self.__label_3["fg"] = "black"
+
             if len(self.__quantum) == 0 or not self.__quantum.replace("0", ""):
                 self.__label_2["fg"] = "red"
                 return
-            self.__label_2["fg"] = "black"
 
             if len(self.__context_switching) == 0 or not self.__context_switching.replace("0", ""):
                 self.__label_3["fg"] = "red"
@@ -51,14 +67,37 @@ class MenuWindow(Tk):
             self.__quantum = None
             self.__context_switching = None
 
+        self.__label_5["fg"] = "black"
+        self.__label_6["fg"] = "black"
+        self.__label_7["fg"] = "black"
+
+        # Verifica se o usuário definiu as configurações de memória.
+        if not self.__ram_memory_size or not self.__ram_memory_size.replace("0", ""):
+            self.__label_5["fg"] = "red"
+            return
+
+        if not self.__memory_page_size or not self.__memory_page_size.replace("0", ""):
+            self.__label_6["fg"] = "red"
+            return
+
+        if not self.__page_per_process or not self.__page_per_process.replace("0", ""):
+            self.__label_7["fg"] = "red"
+            return
+
+        self.__ram_memory_size = int(self.__ram_memory_size)
+        self.__memory_page_size = int(self.__memory_page_size)
+        self.__page_per_process = int(self.__page_per_process)
+
         self.__closed = False
         self.destroy()
 
-    def __set_algorithm(self, index: int):
+    def __set_cpu_algorithm(self, index: int):
         """
-        Define o algorimo (classe) que será utilizado pelo simulador.
+        Define o algorimo (classe) que será utilizado para escalonamento de processos.
         """
-        self.__algorithm = [
+        last_algorithm = self.__cpu_algorithm
+
+        self.__cpu_algorithm = [
             FIFOProcessScheduler,
             SJFProcessScheduler,
             RoundRobinProcessScheduler,
@@ -69,18 +108,49 @@ class MenuWindow(Tk):
             self.__entry_2.delete(0, "end")
             self.__entry_3.delete(0, "end")
 
+            self.__entry_2.insert(0, self.__NOT_REQUIRED_MESSAGE)
+            self.__entry_3.insert(0, self.__NOT_REQUIRED_MESSAGE)
+
+        elif last_algorithm in [FIFOProcessScheduler, SJFProcessScheduler]:
+            self.__entry_2.delete(0, "end")
+            self.__entry_3.delete(0, "end")
+
         self.__label_2["fg"] = "black"
         self.__label_3["fg"] = "black"
 
-        self.__menu_button.config(text = ["FIFO", "SFJ", "RR", "EDF"][index])
+        self.__menu_button_1.config(text = ["FIFO", "SFJ", "RR", "EDF"][index])
 
-    def __validate_entry(self, string):
+    def __set_memory_algorithm(self, index: int):
         """
-        Valida a entrada do usuário na Entry.
+        Define o algorimo (classe) que será utilizado para paginação.
         """
-        if self.__algorithm not in [RoundRobinProcessScheduler, EDFProcessScheduler]:
+        self.__memory_algorithm = [
+            None, None
+        ][index]
+
+        self.__menu_button_2.config(text = ["FIFO", "LRU"][index])
+
+    def __validate_memory_scheduler_entry(self, string):
+        """
+        Valida a entrada do usuário nas Entrys relacionadas à memória.
+        """
+        for char in string:
+            if char not in "0123456789": return False
+        return True
+
+    def __validate_process_scheduler_entry(self, string):
+        """
+        Valida a entrada do usuário nas Entrys relacionadas à CPU.
+        """
+        if self.__cpu_algorithm not in [RoundRobinProcessScheduler, EDFProcessScheduler]:
+            if string == self.__NOT_REQUIRED_MESSAGE:
+                return True
+
             self.__entry_2.delete(0, "end")
             self.__entry_3.delete(0, "end")
+
+            self.__entry_2.insert(0, self.__NOT_REQUIRED_MESSAGE)
+            self.__entry_3.insert(0, self.__NOT_REQUIRED_MESSAGE)
             return False
 
         for char in string:
@@ -105,19 +175,19 @@ class MenuWindow(Tk):
         self.__label_1 = Label(self.__frame_1, text = "Selecione o algoritmo de escalonamento:", bg = "white")
         self.__label_1.pack(side = "left")
 
-        self.__menu_button = Menubutton(self.__frame_1)
-        self.__menu_button.pack(side = "left", expand = True, fill = "x")
+        self.__menu_button_1 = Menubutton(self.__frame_1)
+        self.__menu_button_1.pack(side = "left", expand = True, fill = "x")
 
-        self.__menu = Menu(tearoff = 0, bg = "white")
+        self.__menu_1 = Menu(tearoff = 0, bg = "white")
 
-        self.__menu.add_command(label = "FIFO", command = lambda: self.__set_algorithm(0))
-        self.__menu.add_command(label = "SJF", command = lambda: self.__set_algorithm(1))
-        self.__menu.add_command(label = "RR", command = lambda: self.__set_algorithm(2))
-        self.__menu.add_command(label = "EDF", command = lambda: self.__set_algorithm(3))
+        self.__menu_1.add_command(label = "FIFO", command = lambda: self.__set_cpu_algorithm(0))
+        self.__menu_1.add_command(label = "SJF", command = lambda: self.__set_cpu_algorithm(1))
+        self.__menu_1.add_command(label = "RR", command = lambda: self.__set_cpu_algorithm(2))
+        self.__menu_1.add_command(label = "EDF", command = lambda: self.__set_cpu_algorithm(3))
 
-        self.__menu_button.config(menu = self.__menu, text = "FIFO")
+        self.__menu_button_1.config(menu = self.__menu_1, text = "FIFO")
 
-        self.__entry_reg = self.register(self.__validate_entry)
+        self.__entry_reg_1 = self.register(self.__validate_process_scheduler_entry)
 
         # Widgets para selecionar o quantum da CPU.
         self.__frame_2 = Frame(self.__main_frame)
@@ -128,7 +198,8 @@ class MenuWindow(Tk):
         self.__label_2.pack(side = "left")
 
         self.__entry_2 = Entry(self.__frame_2, width = 4)
-        self.__entry_2.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__entry_2.config(validate="key", validatecommand=(self.__entry_reg_1, "%P"))
+        self.__entry_2.insert(0, self.__NOT_REQUIRED_MESSAGE)
         self.__entry_2.pack(side = "left", expand = True, fill = "x")
 
         # Widgets para selecionar o chaveamento da CPU.
@@ -140,21 +211,83 @@ class MenuWindow(Tk):
         self.__label_3.pack(side = "left")
 
         self.__entry_3 = Entry(self.__frame_3, width = 4)
-        self.__entry_3.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__entry_3.config(validate="key", validatecommand=(self.__entry_reg_1, "%P"))
+        self.__entry_3.insert(0, self.__NOT_REQUIRED_MESSAGE)
         self.__entry_3.pack(side = "left", expand = True, fill = "x")
+
+        # Label para separar as configurações de processos (CPU) e memória.
+        self.__separator = Label(self.__main_frame, background = "white")
+        self.__separator.pack(pady = 10)
+
+        # Widgets para selecionar o algoritmo para paginação.
+        self.__frame_4 = Frame(self.__main_frame)
+        self.__frame_4["bg"] = "white"
+        self.__frame_4.pack(expand = True, fill = "x")
+
+        self.__label_4 = Label(self.__frame_4, text = "Selecione o algoritmo de paginação:", bg = "white")
+        self.__label_4.pack(side = "left")
+
+        self.__menu_button_2 = Menubutton(self.__frame_4)
+        self.__menu_button_2.pack(side = "left", expand = True, fill = "x")
+
+        self.__menu_2 = Menu(tearoff = 0, bg = "white")
+        self.__menu_2.add_command(label = "FIFO", command = lambda: self.__set_memory_algorithm(0))
+        self.__menu_2.add_command(label = "LRU", command = lambda: self.__set_memory_algorithm(1))
+        self.__menu_button_2.config(menu = self.__menu_2, text = "FIFO")
+
+        self.__entry_reg_2 = self.register(self.__validate_memory_scheduler_entry)
+
+        # Widgets para selecionar o tamanho da memória RAM.
+        self.__frame_5 = Frame(self.__main_frame)
+        self.__frame_5["bg"] = "white"
+        self.__frame_5.pack(pady = 10, expand = True, fill = "x")
+
+        self.__label_5 = Label(self.__frame_5, text = "Tamanho da Memória RAM (n > 0):", bg = "white")
+        self.__label_5.pack(side = "left")
+
+        self.__entry_4 = Entry(self.__frame_5, width = 4)
+        self.__entry_4.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_4.insert(0, str(self.__ram_memory_size))
+        self.__entry_4.pack(side = "left", expand = True, fill = "x")
+
+        # Widgets para selecionar o tamanho das páginas de memória.
+        self.__frame_6 = Frame(self.__main_frame)
+        self.__frame_6["bg"] = "white"
+        self.__frame_6.pack(expand = True, fill = "x")
+
+        self.__label_6 = Label(self.__frame_6, text = "Tamanho das páginas de memória (n > 0):", bg = "white")
+        self.__label_6.pack(side = "left")
+
+        self.__entry_5 = Entry(self.__frame_6, width = 4)
+        self.__entry_5.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_5.insert(0, str(self.__memory_page_size))
+        self.__entry_5.pack(side = "left", expand = True, fill = "x")
+
+        # Widgets para selecionar a quantidade de páginas por processo.
+        self.__frame_7 = Frame(self.__main_frame)
+        self.__frame_7["bg"] = "white"
+        self.__frame_7.pack(pady = 10, expand = True, fill = "x")
+
+        self.__label_7 = Label(self.__frame_7, text = "Quantidade de páginas por processo (n > 0):", bg = "white")
+        self.__label_7.pack(side = "left")
+
+        self.__entry_6 = Entry(self.__frame_7, width = 4)
+        self.__entry_6.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_6.insert(0, str(self.__page_per_process))
+        self.__entry_6.pack(side = "left", expand = True, fill = "x")
 
         # Botão para sair do menu de configuração.
         self.__button = Button(
             self.__main_frame, text = "Iniciar", command = self.__finish_config,
-            font = ("Arial", int(self.__size[1] * 0.13))
+            font = ("Arial", int(self.__size[0] * 0.06))
         )
-        self.__button.pack(pady = 10)
+        self.__button.pack(pady = 10, expand = True, fill = "x")
 
     def get_process_scheduler(self):
         """
         Retorna as configurações enviadas pelo usuário.
         """
-        return self.__algorithm(self.__quantum, self.__context_switching)
+        return self.__cpu_algorithm(self.__quantum, self.__context_switching)
 
     def run(self):
         """
