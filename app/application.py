@@ -1,6 +1,7 @@
 from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Scrollbar, Tk
 from typing import Tuple
 
+from memory_paging import MemoryManager
 from process import Process
 from process_scheduler import ProcessScheduler
 
@@ -314,11 +315,13 @@ class Application(Tk):
         self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
 
-    def run(self, process_scheduler: ProcessScheduler, interval: int = 1000, generate_log_file: bool = False):
+    def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """
         Executa a aplicação principal, com sua parte gráfica.
         """
         self.__process_scheduler = process_scheduler
+        self.__memory_manager = memory_manager
+
         self.__on_update_interval = interval
         self.__generate_log_file = generate_log_file
 

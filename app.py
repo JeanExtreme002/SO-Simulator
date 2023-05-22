@@ -7,7 +7,8 @@ if __name__ == "__main__":
 
     if not menu.closed:
         process_scheduler = menu.get_process_scheduler()
+        memory_manager = menu.get_memory_manager()
 
         application = Application(title = f"Simulador - {process_scheduler.name} Algorithm")
         application.build()
-        application.run(process_scheduler, generate_log_file = True)
+        application.run(process_scheduler, memory_manager, generate_log_file = True)

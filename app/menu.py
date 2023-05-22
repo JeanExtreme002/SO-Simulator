@@ -1,5 +1,11 @@
 from tkinter import Button, Frame, Label, Menu, Tk
 from tkinter.ttk import Entry, Menubutton
+
+from memory_paging import MemoryManager
+from memory_paging.fifo import FIFOMemoryManager
+from memory_paging.lru import LRUMemoryManager
+
+from process_scheduler import ProcessScheduler
 from process_scheduler.edf import EDFProcessScheduler
 from process_scheduler.fifo import FIFOProcessScheduler
 from process_scheduler.round_robin import RoundRobinProcessScheduler
@@ -22,7 +28,7 @@ class MenuWindow(Tk):
         self.__quantum = None
 
         # Configurações relacionadas à paginação.
-        self.__memory_algorithm = None  # TODO: Replace it
+        self.__memory_algorithm = FIFOMemoryManager
         self.__ram_memory_size = 200 * 1000
         self.__memory_page_size = 4 * 1000
         self.__page_per_process = 10
@@ -283,9 +289,15 @@ class MenuWindow(Tk):
         )
         self.__button.pack(pady = 10, expand = True, fill = "x")
 
-    def get_process_scheduler(self):
+    def get_memory_manager(self) -> MemoryManager:
         """
-        Retorna as configurações enviadas pelo usuário.
+        Retorna o gerenciador de memória com base nas configurações inseridas pelo usuário.
+        """
+        return self.__memory_algorithm(self.__ram_memory_size, self.__memory_page_size, self.__page_per_process)
+
+    def get_process_scheduler(self) -> ProcessScheduler:
+        """
+        Retorna o escalonador com base nas configurações inseridas pelo usuário.
         """
         return self.__cpu_algorithm(self.__quantum, self.__context_switching)
 
