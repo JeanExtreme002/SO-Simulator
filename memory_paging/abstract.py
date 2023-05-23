@@ -16,7 +16,7 @@ class MemoryManager(ABC):
         self._page_usage_table = dict()  # Dicionário com relação {<ID Processo> : Quantidade de páginas}
         self.__translator_salt = random.randint(1, 10 ** 6)
 
-        self.__real_memory_table: List[Tuple[Optional[Process], Any]] = [  # Lista de (Processo, valor)
+        self._real_memory_table: List[Tuple[Optional[Process], Any]] = [  # Lista de (Processo, valor)
             (None, None) for i in range(self.__ram_memory_pages)
         ]
 
@@ -48,7 +48,7 @@ class MemoryManager(ABC):
             raise OverflowError("Max amount of memory page exceeded.")
 
         self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1
-        self.__real_memory_table[real_memory_address] = (process, value)
+        self._real_memory_table[real_memory_address] = (process, value)
 
         return self._translate_to_virtual_memory_address(real_memory_address)
 
@@ -64,7 +64,7 @@ class MemoryManager(ABC):
         """
         result = int(virtual_memory_address, base = 16) / self.__translator_salt
 
-        if int(result) != result or int(result) >= len(self.__real_memory_table):
+        if int(result) != result or int(result) >= len(self._real_memory_table):
             raise ValueError("Invalid memory address.")
         return int(result)
 
@@ -73,13 +73,13 @@ class MemoryManager(ABC):
         Utiliza uma página de memória em uma dado endereço, retornando
         o seu valor atual e escrevendo algo no espaço.
         """
-        registered_process, value = self.__real_memory_table[real_memory_address]
+        registered_process, value = self._real_memory_table[real_memory_address]
 
         if process.id != registered_process:
             raise ValueError("Illegal access for this memory page.")
 
         if new_value is not None:
-            self.__real_memory_table[real_memory_address] = (process, new_value)
+            self._real_memory_table[real_memory_address] = (process, new_value)
 
         return value
 

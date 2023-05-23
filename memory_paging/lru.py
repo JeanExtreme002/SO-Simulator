@@ -3,13 +3,19 @@ from process import Process
 
 
 class LRUMemoryManager(MemoryManager):
+
     __count = 0
 
     def __find_least_recently_used_address(self) -> int:
         """
         Retorna o endereço da página menos recentemente utilizada.
         """
-        pass
+        minimum, address = float("inf"), 0
+
+        for index in range(self.ram_memory_pages):
+            value = self._real_memory_table[index]
+            if value < minimum: minimum, address = value, index
+        return address
 
     def reserve(self, process: Process) -> str:
         """
@@ -23,7 +29,7 @@ class LRUMemoryManager(MemoryManager):
         else:
             real_memory_address = self.__find_least_recently_used_address()
 
-        return super()._reserve(process, real_memory_address, 0)
+        return super()._reserve(process, real_memory_address, 1)
 
     def use(self, process: Process, memory_page_address: str):
         """
@@ -33,11 +39,9 @@ class LRUMemoryManager(MemoryManager):
 
         # Aumenta a pontuação da página de memória utilizada.
         value = super()._use(process, real_memory_address)
-        super()._use(process, real_memory_address, value + 1)
+        self._real_memory_table[real_memory_address][1] += 1
 
         # Diminui a pontuação das outras páginas de memória.
         for address in range(self.ram_memory_pages):
             if address == real_memory_address: continue
-
-            value = super()._use(process, real_memory_address)
-            super()._use(process, real_memory_address, value - 1)
+            self._real_memory_table[address][1] -= 1
