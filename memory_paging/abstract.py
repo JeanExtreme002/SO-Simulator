@@ -11,6 +11,7 @@ class MemoryManager(ABC):
         self.__page_size = page_size
         self.__page_per_process = page_per_process
 
+        self._page_usage_table = dict()  # <ID Processo> : Quantidade de páginas
         self.__translator_salt = random.randint(1, 10 ** 6)
         self.__real_memory_table = [None for i in range(ram_memory_size // page_size)]
 
@@ -49,7 +50,11 @@ class MemoryManager(ABC):
 
         :returns: Retorna o endereço da página em hexadecimal.
         """
-        pass
+        reserved_pages = self._page_usage_table.get(process.id, 0)
+
+        if reserved_pages >= self.page_per_process:
+            raise OverflowError("Max amount of memory page exceeded.")
+        self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1
 
     @abstractmethod
     def use(self, process: Process, memory_page_address: str):
