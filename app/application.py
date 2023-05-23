@@ -45,9 +45,14 @@ class Application(Tk):
         """
         duration = self.__duration_entry.get()
         deadline = self.__deadline_entry.get()
+        memory = self.__memory_entry.get()
 
         if not duration or not duration.replace("0", ""): return self.__duration_label.config(foreground = "red")
+        if not memory: return self.__memory_label.config(foreground = "red")
+        if not deadline.replace("0", ""): return
+
         self.__duration_label.config(foreground = "black")
+        self.__memory_label.config(foreground = "black")
 
         duration = int(duration)
         deadline = int(deadline) if deadline else None
@@ -326,6 +331,7 @@ class Application(Tk):
         self.__memory_label.pack(side="left")
 
         self.__memory_entry = Entry(self.__add_process_frame)
+        self.__memory_entry.insert(0, "0")
         self.__memory_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__memory_entry.pack(side="left")
 
