@@ -338,8 +338,6 @@ class Application(Tk):
         self.__critical_checkbutton.select()
         self.__critical_checkbutton.pack(side="left")
 
-
-
     def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """
         Executa a aplicação principal, com sua parte gráfica.
@@ -351,7 +349,7 @@ class Application(Tk):
         self.__generate_log_file = generate_log_file
 
         self.__memory_window = MemoryWindow(self.__memory_window_title)
-        self.__memory_window.build()
+        self.__memory_window.build(memory_manager.ram_memory_pages)
 
         self.after(self.__on_update_interval, self.__on_update)
         self.mainloop()
