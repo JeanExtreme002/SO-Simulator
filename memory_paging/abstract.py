@@ -44,7 +44,7 @@ class MemoryManager(ABC):
         """
         Reserva uma página para o dado processo.
 
-        :returns: Retorna o endereço da página em hexadecimal.
+        :return: Retorna o endereço da página em hexadecimal.
         """
         reserved_pages = self._page_usage_table.get(process.id, 0)
 
@@ -87,12 +87,27 @@ class MemoryManager(ABC):
 
         return value
 
+    def alloc_memory(self, process: Process, memory: int) -> List[str]:
+        """
+        Aloca um espaço na memória para o processo.
+
+        :return: Lista com os endereços das páginas utilizadas pelo processo, em hexadecimal.
+        """
+        memory_addresses = []
+
+        if memory > self.page_per_process * self.page_size:
+            raise OverflowError("Max amount of memory page exceeded.")
+
+        while memory > 0:
+            memory_addresses.append(self.reserve(process))
+        return memory_addresses
+
     @abstractmethod
     def reserve(self, process: Process) -> str:
         """
         Reserva uma página para o dado processo.
 
-        :returns: Retorna o endereço da página em hexadecimal.
+        :return: Retorna o endereço da página em hexadecimal.
         """
         pass
 

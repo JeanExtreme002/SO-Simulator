@@ -25,7 +25,7 @@ class LRUMemoryManager(MemoryManager):
         """
         Reserva uma página para o dado processo.
 
-        :returns: Retorna o endereço da página em hexadecimal.
+        :return: Retorna o endereço da página em hexadecimal.
         """
         if self.__count < self.ram_memory_pages:
             real_memory_address = self.__count
