@@ -16,6 +16,9 @@ class Process(object):
         self.__deadline = deadline
         self.__ignore_deadline_error = ignore_deadline_error
 
+    def __str__(self):
+        return f"<Process: {self.id}>"
+
     @property
     def id(self) -> int:
         return self.__id
