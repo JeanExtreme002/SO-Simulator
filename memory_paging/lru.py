@@ -6,6 +6,10 @@ class LRUMemoryManager(MemoryManager):
 
     __count = 0
 
+    @property
+    def name(self) -> str:
+        return "Least Recently Used (LRU)"
+
     def __find_least_recently_used_address(self) -> int:
         """
         Retorna o endereço da página menos recentemente utilizada.

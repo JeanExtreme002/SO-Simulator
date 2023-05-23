@@ -1,6 +1,7 @@
 from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Scrollbar, Tk
 from typing import Tuple
 
+from app.memory_window import MemoryWindow
 from memory_paging import MemoryManager
 from process import Process
 from process_scheduler import ProcessScheduler
@@ -13,8 +14,12 @@ class Application(Tk):
     Classe principal da aplicação.
     """
 
-    def __init__(self, title: str = "Window", size: tuple[int] = (1280, 720)):
+    def __init__(self, title: str = "Window", memory_window_title: str = "Window", size: tuple[int] = (1280, 720)):
         super().__init__()
+
+        self.__title = title
+        self.__memory_window_title = memory_window_title
+
         self.__size = size
 
         self.__generate_log_file = False
@@ -324,6 +329,9 @@ class Application(Tk):
 
         self.__on_update_interval = interval
         self.__generate_log_file = generate_log_file
+
+        self.__memory_window = MemoryWindow(self.__memory_window_title)
+        self.__memory_window.build()
 
         self.after(self.__on_update_interval, self.__on_update)
         self.mainloop()

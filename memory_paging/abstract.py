@@ -21,6 +21,10 @@ class MemoryManager(ABC):
         ]
 
     @property
+    def name(self) -> str:
+        return ""
+
+    @property
     def ram_memory_pages(self) -> int:
         return self.__ram_memory_pages
 

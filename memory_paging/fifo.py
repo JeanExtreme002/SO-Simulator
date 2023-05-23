@@ -6,6 +6,10 @@ class FIFOMemoryManager(MemoryManager):
 
     __count = 0
 
+    @property
+    def name(self) -> str:
+        return "First In First Out (FIFO)"
+
     def reserve(self, process: Process) -> str:
         """
         Reserva uma página para o dado processo.
