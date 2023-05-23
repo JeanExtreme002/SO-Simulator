@@ -16,10 +16,16 @@ class RoundRobinProcessScheduler(ProcessScheduler):
         return "Round Robin (RR)"
 
     def add_process(self, process: Process):
+        """
+        Adiciona um processo.
+        """
         super().add_process(process)
         self.__queue.append(process)
 
     def remove_process(self, process: Process):
+        """
+        Remove um processo.
+        """
         super().remove_process(process)
         self.__queue.remove(process)
 

@@ -16,6 +16,11 @@ class EDFProcessScheduler(ProcessScheduler):
         return "Earliest Deadline First (EDF)"
 
     def run(self) -> Optional[Tuple[Optional[Process], Optional[List[Process]], bool]]:
+        """
+        Executa um processo.
+
+        :return: Retorna o processo executado, uma lista com os processos em espera e um indicador de sobrecarga.
+        """
         if len(self.processes) == 0: return
 
         # Verifica se o processo já ficou pelo tempo máximo que a CPU permite. Se sim,

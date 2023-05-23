@@ -45,7 +45,7 @@ class ProcessScheduler(ABC):
         """
         Executa um processo.
 
-        :return: Retorna o processo executado e uma lista com os processos em espera.
+        :return: Retorna o processo executado, uma lista com os processos em espera e um indicador de sobrecarga.
         """
         pass
 
