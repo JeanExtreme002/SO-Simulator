@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Any, List, Optional, Tuple
 from process import Process
 
 import random
@@ -11,9 +11,12 @@ class MemoryManager(ABC):
         self.__page_size = page_size
         self.__page_per_process = page_per_process
 
-        self._page_usage_table = dict()  # <ID Processo> : Quantidade de páginas
+        self._page_usage_table = dict()  # Dicionário com relação {<ID Processo> : Quantidade de páginas}
         self.__translator_salt = random.randint(1, 10 ** 6)
-        self.__real_memory_table = [None for i in range(ram_memory_size // page_size)]
+
+        self.__real_memory_table: List[Optional[Tuple[Process, Any]]] = [  # Lista de (Processo, valor)
+            None for i in range(ram_memory_size // page_size)
+        ]
 
     def _translate_to_virtual_memory_address(self, real_memory_address: int) -> str:
         """
@@ -44,7 +47,7 @@ class MemoryManager(ABC):
         return self.__page_per_process
 
     @abstractmethod
-    def reserve(self, process: Process) -> str:
+    def reserve(self, process: Process, real_memory_address: int, value: Optional[Any] = None) -> str:
         """
         Reserva uma página para o dado processo.
 
@@ -54,11 +57,25 @@ class MemoryManager(ABC):
 
         if reserved_pages >= self.page_per_process:
             raise OverflowError("Max amount of memory page exceeded.")
+
         self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1
+        self.__real_memory_table[real_memory_address] = (process, value)
+
+        return self._translate_to_virtual_memory_address(real_memory_address)
 
     @abstractmethod
-    def use(self, process: Process, memory_page_address: str):
+    def use(self, process: Process, real_memory_address: int, new_value: Optional[Any] = None) -> Any:
         """
-        Utiliza uma página de memória em uma dado endereço.
+        Utiliza uma página de memória em uma dado endereço, retornando
+        o seu valor atual e escrevendo algo no espaço.
         """
-        pass
+        registered_process, value = self.__real_memory_table[real_memory_address]
+
+        if process.id != registered_process:
+            raise ValueError("Illegal access for this memory page.")
+
+        if new_value is not None:
+            self.__real_memory_table[real_memory_address] = (process, new_value)
+
+        return value
+
