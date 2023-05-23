@@ -6,15 +6,18 @@ class Process(object):
     Representa um processo no sistema operacional.
     """
 
-    def __init__(self, process_id: int, duration: int, deadline: Optional[int] = None, ignore_deadline_error: bool = False):
+    def __init__(self, process_id: int, duration: int, deadline: Optional[int] = None, ignore_deadline_error: bool = False, is_critical: bool = False):
         """
         :param duration: Duração para o processo executar completamente na CPU.
         :param deadline: Tempo em que o processo necessita ser executado completamente.
+        :param ignore_deadline_error: Se False, os métodos run() e wait() irão gerar um erro caso o deadline seja expirado.
+        :param is_critical: Define se o processo deve terminar ou não ao ter seu deadline expirado.
         """
         self.__id = process_id
         self.__duration = duration
         self.__deadline = deadline
         self.__ignore_deadline_error = ignore_deadline_error
+        self.__is_critical = is_critical
 
     def __str__(self):
         return f"<Process: {self.id}>"
@@ -31,18 +34,22 @@ class Process(object):
     def deadline(self) -> int:
         return self.__deadline
 
+    @property
+    def is_critical(self) -> int:
+        return self.__is_critical
+
     def is_finished(self) -> True:
         """
         Verifica se o processo encerrou completamente.
         """
-        return self.__duration <= 0
+        return self.__duration <= 0 or (self.has_died() and self.__is_critical)
 
     def has_died(self) -> True:
         """
         Verifica se o tempo do deadline foi excedido.
         """
         if self.__deadline is None: return False
-        return self.__deadline <= 0
+        return self.__deadline < 0
 
     def run(self, time: int = 1):
         """

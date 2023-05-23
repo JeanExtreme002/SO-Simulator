@@ -1,4 +1,4 @@
-from tkinter import Button, Canvas, Entry, Frame, Label, Listbox, Scrollbar, Tk
+from tkinter import Button, BooleanVar, Canvas, Checkbutton, Entry, Frame, Label, Listbox, Scrollbar, Tk
 from typing import Tuple
 
 from app.memory_window import MemoryWindow
@@ -56,7 +56,8 @@ class Application(Tk):
             process_id = self.__process_count,
             duration = duration,
             deadline = deadline,
-            ignore_deadline_error = True
+            ignore_deadline_error = True,
+            is_critical = self.__is_critical.get()
         )
         process.index = len(self.__process_history)
         self.__process_count += 1
@@ -128,9 +129,10 @@ class Application(Tk):
             self.__process_history[process.index][self.__history_length - 1] = ("switch", "#333")
 
         # Adiciona o estado do processo ao histórico.
-        elif process:
+        elif process and (not process.has_died() or not process.is_critical):
+            # Caso o processo tenha o seu deadline expirado, a sua cor passará a ser uma variação de vermelho.
             if process.has_died() and not process.color.endswith("0000"):
-                r, g, b = (random.randint(180, 255), 0, 0)  # Cor vermelha caso o deadline do process foi expirado.
+                r, g, b = (random.randint(180, 255), 0, 0)
                 process.color = f"#{r:02x}{g:02x}{b:02x}"
             self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
@@ -319,6 +321,24 @@ class Application(Tk):
         self.__deadline_entry = Entry(self.__add_process_frame)
         self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
+
+        self.__memory_label = Label(self.__add_process_frame, text="Memória: ", background = "white")
+        self.__memory_label.pack(side="left")
+
+        self.__memory_entry = Entry(self.__add_process_frame)
+        self.__memory_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__memory_entry.pack(side="left")
+
+        self.__is_critical = BooleanVar()
+
+        self.__critical_checkbutton = Checkbutton(
+            self.__add_process_frame, text = "Regime Crítico?",
+            background = "white", variable = self.__is_critical
+        )
+        self.__critical_checkbutton.select()
+        self.__critical_checkbutton.pack(side="left")
+
+
 
     def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """
