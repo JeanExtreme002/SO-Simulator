@@ -103,6 +103,17 @@ class MemoryManager(ABC):
             memory -= self.page_size
         return memory_addresses
 
+    def free_memory(self, process: Process) -> str:
+        """
+        Libera a memória utiliza por um processo.
+        """
+        for real_address in range(self.ram_memory_pages):
+            if self._real_memory_table[real_address][0] == process:
+                self._real_memory_table[real_address] = (None, None)
+
+        if process.id in self._page_usage_table:
+            self._page_usage_table.pop(process.id)
+
     def get_real_memory_table(self) -> List[Tuple[int, Optional[id], Optional[str]]]:
         """
         Retorna uma lista contendo tuplas no formato (Real Memory ID, Process ID, Virtual Memory ID).

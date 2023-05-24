@@ -141,10 +141,17 @@ class Application(Tk):
 
         # Adiciona o estado do processo ao histórico.
         elif process and (not process.has_died() or not process.is_critical):
+
             # Caso o processo tenha o seu deadline expirado, a sua cor passará a ser uma variação de vermelho.
             if process.has_died() and not process.color.endswith("0000"):
                 r, g, b = (random.randint(180, 255), 0, 0)
                 process.color = f"#{r:02x}{g:02x}{b:02x}"
+
+            # Libera a memória utilizada pelo processo.
+            if process.is_finished():
+                self.__memory_manager.free_memory(process)
+                self.__memory_window.update_real_memory_table(self.__memory_manager)
+
             self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
         # Remove processos que já saíram do histórico.
