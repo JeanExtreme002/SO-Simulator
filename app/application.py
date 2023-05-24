@@ -49,13 +49,14 @@ class Application(Tk):
 
         if not duration or not duration.replace("0", ""): return self.__duration_label.config(foreground = "red")
         if not memory: return self.__memory_label.config(foreground = "red")
-        if not deadline.replace("0", ""): return
+        if deadline and not deadline.replace("0", ""): return
 
         self.__duration_label.config(foreground = "black")
         self.__memory_label.config(foreground = "black")
 
         duration = int(duration)
         deadline = int(deadline) if deadline else None
+        memory = int(memory)
 
         process = Process(
             process_id = self.__process_count,
@@ -65,6 +66,10 @@ class Application(Tk):
             is_critical = self.__is_critical.get()
         )
         process.index = len(self.__process_history)
+
+        try: self.__memory_manager.alloc_memory(process, memory)
+        except OverflowError: return self.__memory_label.config(foreground = "red")
+
         self.__process_count += 1
 
         color = (random.randint(100, 200), random.randint(100, 200), random.randint(100, 200))
@@ -74,6 +79,7 @@ class Application(Tk):
         self.__process_history.append([None] * self.__history_length)
 
         self.__process_list.append(process)
+        self.__memory_window.update_real_memory_table(self.__memory_manager)
 
     def __append_to_log_file(self, string):
         """

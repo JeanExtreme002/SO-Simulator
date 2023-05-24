@@ -54,19 +54,19 @@ class MemoryManager(ABC):
         self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1
         self._real_memory_table[real_memory_address] = (process, value)
 
-        return self._translate_to_virtual_memory_address(real_memory_address)
+        return self._translate_to_virtual_memory_address(process, real_memory_address)
 
-    def _translate_to_virtual_memory_address(self, real_memory_address: int) -> str:
+    def _translate_to_virtual_memory_address(self, process: Process, real_memory_address: int) -> str:
         """
         Traduz o endereço de memória real para um endereço de memória virtual.
         """
-        return hex(real_memory_address * self.__translator_salt)
+        return hex((real_memory_address + 1) * self.__translator_salt * (process.id + 1))
 
-    def _translate_to_real_memory_address(self, virtual_memory_address: str) -> int:
+    def _translate_to_real_memory_address(self, process: Process, virtual_memory_address: str) -> int:
         """
         Traduz o endereço de memória virtual para um endereço de memória real.
         """
-        result = int(virtual_memory_address, base = 16) / self.__translator_salt
+        result = (int(virtual_memory_address, base = 16) / self.__translator_salt) / (process.id + 1) - 1
 
         if int(result) != result or int(result) >= len(self._real_memory_table):
             raise ValueError("Invalid memory address.")
@@ -100,7 +100,23 @@ class MemoryManager(ABC):
 
         while memory > 0:
             memory_addresses.append(self.reserve(process))
+            memory -= self.page_size
         return memory_addresses
+
+    def get_real_memory_table(self) -> List[Tuple[int, Optional[id], Optional[str]]]:
+        """
+        Retorna uma lista contendo tuplas no formato (Real Memory ID, Process ID, Virtual Memory ID).
+        """
+        table = []
+
+        for real_address in range(self.ram_memory_pages):
+            process = self._real_memory_table[real_address][0]
+            if process is None: continue
+
+            virtual_address = self._translate_to_virtual_memory_address(process, real_address)
+            table.append((real_address, process.id, virtual_address))
+
+        return table
 
     @abstractmethod
     def reserve(self, process: Process) -> str:

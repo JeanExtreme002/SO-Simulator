@@ -26,4 +26,4 @@ class FIFOMemoryManager(MemoryManager):
         """
         Utiliza uma página de memória em uma dado endereço.
         """
-        super()._use(process, self._translate_to_real_memory_address(memory_page_address))
+        super()._use(process, self._translate_to_real_memory_address(process, memory_page_address))
