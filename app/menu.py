@@ -1,4 +1,4 @@
-from tkinter import Button, Frame, Label, Menu, Tk
+from tkinter import BooleanVar, Button, Checkbutton, Frame, Label, Menu, Tk
 from tkinter.ttk import Entry, Menubutton
 
 from memory_paging import MemoryManager
@@ -282,12 +282,35 @@ class MenuWindow(Tk):
         self.__entry_6.insert(0, str(self.__page_per_process))
         self.__entry_6.pack(side = "left", expand = True, fill = "x")
 
+        # Label para separar as configurações de memória da configuração de geração de arquivo de log.
+        self.__separator = Label(self.__main_frame, background = "white")
+        self.__separator.pack()
+
+        # Widgets para configuração de geração de arquivo de log ou não.
+        self.__frame_8 = Frame(self.__main_frame)
+        self.__frame_8["bg"] = "white"
+        self.__frame_8.pack(expand = True, fill = "x")
+
+        self.__generate_log_file = BooleanVar()
+
+        self.__log_checkbutton = Checkbutton(
+            self.__frame_8, text = "Gerar arquivo de log?",
+            background = "white", variable = self.__generate_log_file
+        )
+        self.__log_checkbutton.pack(side = "left")
+
         # Botão para sair do menu de configuração.
         self.__button = Button(
             self.__main_frame, text = "Iniciar", command = self.__finish_config,
             font = ("Arial", int(self.__size[0] * 0.06))
         )
         self.__button.pack(pady = 10, expand = True, fill = "x")
+
+    def get_log_config(self) -> bool:
+        """
+        Retorna um booleano indicando se o arquivo de log deve ser gerado ou não.
+        """
+        return self.__generate_log_file.get()
 
     def get_memory_manager(self) -> MemoryManager:
         """

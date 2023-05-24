@@ -14,4 +14,8 @@ if __name__ == "__main__":
             memory_window_title = f"Simulador - {memory_manager.name} Paging Algorithm"
         )
         application.build()
-        application.run(process_scheduler, memory_manager, generate_log_file = True)
+        application.run(
+            process_scheduler = process_scheduler,
+            memory_manager = memory_manager,
+            generate_log_file = menu.get_log_config()
+        )
