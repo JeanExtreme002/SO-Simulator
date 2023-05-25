@@ -39,6 +39,29 @@ class Application(Tk):
         self.resizable(False, False)
         self.geometry("{}x{}".format(*size))
 
+    def __add_memory(self):
+        """
+        Adiciona mais memória à um processo existente.
+        """
+        process_id = self.__process_id_entry.get()
+        memory = self.__extra_memory_entry.get()
+
+        self.__process_id_label.config(foreground = "black")
+        self.__extra_memory_label.config(foreground = "black")
+
+        if not memory.replace("0", ""): return
+        if not process_id: return self.__process_id_label.config(foreground = "red")
+
+        # Verifica se o processo existe.
+        for process in self.__process_list:
+            if process.id == int(process_id): break
+        else: return self.__process_id_label.config(foreground="red")
+
+        try: self.__memory_manager.alloc_memory(process, int(memory))
+        except OverflowError: return self.__extra_memory_label.config(foreground = "red")
+
+        self.__memory_window.update_real_memory_table(self.__memory_manager)
+
     def __add_process(self):
         """
         Adiciona um novo processo para o simulador.
@@ -278,7 +301,7 @@ class Application(Tk):
             self.__size[0] * 0.95 - (self.__size[0] * 0.95 % self.__history_length)
             + self.__history_border * (self.__history_length - 1)
         )
-        self.__canvas_height = self.__size[1] * 0.6
+        self.__canvas_height = self.__size[1] * 0.5
 
         self.__canvas = Canvas(
             self.__main_frame, width = self.__canvas_width, height = self.__canvas_height,
@@ -312,7 +335,7 @@ class Application(Tk):
         # Widgets para receber as entradas do usuário para adicionar um novo processo.
         self.__add_process_frame = Frame(self.__main_frame)
         self.__add_process_frame["bg"] = "white"
-        self.__add_process_frame.pack(pady = 10)
+        self.__add_process_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__add_process_button = Button(
             self.__add_process_frame, text = "Adicionar Processo",
@@ -356,6 +379,39 @@ class Application(Tk):
         )
         self.__critical_checkbutton.select()
         self.__critical_checkbutton.pack(side="left")
+
+        # Widgets para receber as entradas do usuário para adicionar memória à um processo.
+        self.__add_memory_frame = Frame(self.__main_frame)
+        self.__add_memory_frame["bg"] = "white"
+        self.__add_memory_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
+
+        self.__add_memory_button = Button(
+            self.__add_memory_frame, text = "Adicionar Memória",
+            command = self.__add_memory, background = "lightblue"
+        )
+        self.__add_memory_button.pack(padx = 10, side = "left")
+
+        self.__process_id_frame = Frame(self.__add_memory_frame)
+        self.__process_id_frame["bg"] = "white"
+        self.__process_id_frame.pack(side = "left", padx = 10)
+
+        self.__process_id_label = Label(self.__process_id_frame, text = "ID do Processo: ", background = "white")
+        self.__process_id_label.pack(side = "left")
+
+        self.__process_id_entry = Entry(self.__process_id_frame)
+        self.__process_id_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__process_id_entry.pack(side = "left")
+
+        self.__extra_memory_frame = Frame(self.__add_memory_frame)
+        self.__extra_memory_frame["bg"] = "white"
+        self.__extra_memory_frame.pack(side = "left", padx = 10)
+
+        self.__extra_memory_label = Label(self.__extra_memory_frame, text = "Memória Extra: ", background = "white")
+        self.__extra_memory_label.pack(side = "left")
+
+        self.__extra_memory_entry = Entry(self.__extra_memory_frame)
+        self.__extra_memory_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__extra_memory_entry.pack(side = "left")
 
     def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """

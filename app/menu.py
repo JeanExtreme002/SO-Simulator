@@ -297,6 +297,7 @@ class MenuWindow(Tk):
             self.__frame_8, text = "Gerar arquivo de log?",
             background = "white", variable = self.__generate_log_file
         )
+        self.__log_checkbutton.select()
         self.__log_checkbutton.pack(side = "left")
 
         # Botão para sair do menu de configuração.
