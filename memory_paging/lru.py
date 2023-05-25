@@ -17,7 +17,7 @@ class LRUMemoryManager(MemoryManager):
         minimum, address = float("inf"), 0
 
         for index in range(self.ram_memory_pages):
-            value = self._real_memory_table[index]
+            value = self._real_memory_table[index][1]
             if value < minimum: minimum, address = value, index
         return address
 

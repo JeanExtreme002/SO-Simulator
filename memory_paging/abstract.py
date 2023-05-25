@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Tuple
 from process import Process
 
+import datetime
 import random
 
 
@@ -16,8 +17,8 @@ class MemoryManager(ABC):
         self._page_usage_table = dict()  # Dicionário com relação {<ID Processo> : Quantidade de páginas}
         self.__translator_salt = random.randint(1, 10 ** 6)
 
-        self._real_memory_table: List[Tuple[Optional[Process], Any]] = [  # Lista de (Processo, valor)
-            (None, None) for i in range(self.__ram_memory_pages)
+        self._real_memory_table: List[Tuple[Optional[Process], Any, str]] = [  # Lista de (Processo, Valor, Tempo do Último uso)
+            (None, None, str()) for i in range(self.__ram_memory_pages)
         ]
 
     @property
@@ -52,8 +53,9 @@ class MemoryManager(ABC):
             raise OverflowError("Max amount of memory page exceeded.")
 
         self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1
-        self._real_memory_table[real_memory_address] = (process, value)
+        self._real_memory_table[real_memory_address] = (process, value, str())
 
+        self._use(process, real_memory_address)
         return self._translate_to_virtual_memory_address(process, real_memory_address)
 
     def _translate_to_virtual_memory_address(self, process: Process, real_memory_address: int) -> str:
@@ -77,13 +79,15 @@ class MemoryManager(ABC):
         Utiliza uma página de memória em uma dado endereço, retornando
         o seu valor atual e escrevendo algo no espaço.
         """
-        registered_process, value = self._real_memory_table[real_memory_address]
+        registered_process, value, last_use = self._real_memory_table[real_memory_address]
 
         if process.id != registered_process.id:
             raise ValueError("Illegal access for this memory page.")
 
-        if new_value is not None:
-            self._real_memory_table[real_memory_address] = (process, new_value)
+        last_use = datetime.datetime.today().strftime("%d/%m/%Y %H:%M:%S")
+
+        if new_value is not None: self._real_memory_table[real_memory_address] = (process, new_value, last_use)
+        else: self._real_memory_table[real_memory_address] = (process, value, last_use)
 
         return value
 
@@ -109,7 +113,7 @@ class MemoryManager(ABC):
         """
         for real_address in range(self.ram_memory_pages):
             if self._real_memory_table[real_address][0] == process:
-                self._real_memory_table[real_address] = (None, None)
+                self._real_memory_table[real_address] = (None, None, str())
 
         if process.id in self._page_usage_table:
             self._page_usage_table.pop(process.id)
@@ -122,10 +126,12 @@ class MemoryManager(ABC):
 
         for real_address in range(self.ram_memory_pages):
             process = self._real_memory_table[real_address][0]
+            last_use = self._real_memory_table[real_address][-1]
+
             if process is None: continue
 
             virtual_address = self._translate_to_virtual_memory_address(process, real_address)
-            table.append((real_address, process.id, virtual_address))
+            table.append((real_address, process.id, virtual_address, last_use))
 
         return table
 

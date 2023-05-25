@@ -18,7 +18,7 @@ class FIFOMemoryManager(MemoryManager):
         """
         available_addresses = list(range(self.ram_memory_pages))
 
-        for real_address, process_id, virtual_address in self.get_real_memory_table():
+        for real_address, process_id, virtual_address, last_use in self.get_real_memory_table():
             available_addresses.remove(real_address)
 
         return available_addresses[0] if available_addresses else None
