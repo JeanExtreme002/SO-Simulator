@@ -79,7 +79,7 @@ class MemoryManager(ABC):
         """
         registered_process, value = self._real_memory_table[real_memory_address]
 
-        if process.id != registered_process:
+        if process.id != registered_process.id:
             raise ValueError("Illegal access for this memory page.")
 
         if new_value is not None:

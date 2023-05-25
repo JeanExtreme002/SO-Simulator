@@ -268,12 +268,49 @@ class Application(Tk):
                 self.__process_history[y][x] = self.__process_history[y][x + 1]
             self.__process_history[y][self.__history_length - 1] = None
 
+    def __use_memory_page(self):
+        """
+        Utiliza uma página de memória de um processo.
+        """
+        process_id = self.__use_process_id_entry.get()
+        page_address = self.__memory_address_entry.get()
+
+        self.__use_process_id_label.config(foreground = "black")
+        self.__memory_address_label.config(foreground = "black")
+
+        if not page_address:
+            return
+
+        if not page_address.startswith("0x") or not page_address.replace("0x", ""):
+            return self.__memory_address_label.config(foreground = "red")
+
+        if not process_id:
+            return self.__use_process_id_label.config(foreground = "red")
+
+        # Verifica se o processo existe.
+        for process in self.__process_list:
+            if process.id == int(process_id): break
+        else: return self.__use_process_id_label.config(foreground="red")
+
+        try: self.__memory_manager.use(process, page_address)
+        except ValueError: return self.__memory_address_label.config(foreground = "red")
+
+        self.__memory_window.update_real_memory_table(self.__memory_manager)
+
     def __validate_entry(self, string):
         """
         Valida a entrada do usuário na Entry.
         """
         for char in string:
             if char not in "0123456789": return False
+        return True
+
+    def __validate_hex_entry(self, string):
+        """
+        Valida a entrada do usuário na Entry.
+        """
+        for char in string.lower():
+            if char not in "x0123456789abcdef": return False
         return True
 
     def build(self):
@@ -338,7 +375,7 @@ class Application(Tk):
         self.__add_process_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__add_process_button = Button(
-            self.__add_process_frame, text = "Adicionar Processo",
+            self.__add_process_frame, text = "Adicionar Processo", width = int(self.__size[0] * 0.013),
             command = self.__add_process, background = "lightgreen"
         )
         self.__add_process_button.pack(padx = 10, side = "left")
@@ -386,7 +423,7 @@ class Application(Tk):
         self.__add_memory_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__add_memory_button = Button(
-            self.__add_memory_frame, text = "Adicionar Memória",
+            self.__add_memory_frame, text = "Adicionar Memória", width = int(self.__size[0] * 0.013),
             command = self.__add_memory, background = "lightblue"
         )
         self.__add_memory_button.pack(padx = 10, side = "left")
@@ -412,6 +449,41 @@ class Application(Tk):
         self.__extra_memory_entry = Entry(self.__extra_memory_frame)
         self.__extra_memory_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__extra_memory_entry.pack(side = "left")
+
+        # Widgets para receber as entradas do usuário para usar uma dada página de um processo.
+        self.__use_memory_frame = Frame(self.__main_frame)
+        self.__use_memory_frame["bg"] = "white"
+        self.__use_memory_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
+
+        self.__use_memory_button = Button(
+            self.__use_memory_frame, text = "Usar Página", width = int(self.__size[0] * 0.013),
+            command = self.__use_memory_page, background = "orange"
+        )
+        self.__use_memory_button.pack(padx = 10, side = "left")
+
+        self.__use_process_id_frame = Frame(self.__use_memory_frame)
+        self.__use_process_id_frame["bg"] = "white"
+        self.__use_process_id_frame.pack(side = "left", padx = 10)
+
+        self.__use_process_id_label = Label(self.__use_process_id_frame, text = "ID do Processo: ", background = "white")
+        self.__use_process_id_label.pack(side = "left")
+
+        self.__use_process_id_entry = Entry(self.__use_process_id_frame)
+        self.__use_process_id_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__use_process_id_entry.pack(side = "left")
+
+        self.__use_memory_frame = Frame(self.__use_memory_frame)
+        self.__use_memory_frame["bg"] = "white"
+        self.__use_memory_frame.pack(side = "left", padx = 10)
+
+        self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página: ", background = "white")
+        self.__memory_address_label.pack(side = "left")
+
+        self.__entry_reg_2 = self.register(self.__validate_hex_entry)
+
+        self.__memory_address_entry = Entry(self.__use_memory_frame)
+        self.__memory_address_entry.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__memory_address_entry.pack(side = "left")
 
     def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """
