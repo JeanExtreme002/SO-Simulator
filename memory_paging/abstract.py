@@ -7,7 +7,7 @@ import random
 
 
 class MemoryManager(ABC):
-    def __init__(self, ram_memory_size: int, page_size: int, page_per_process: Optional[int]):
+    def __init__(self, ram_memory_size: int, page_size: int, page_per_process: Optional[int] = None):
         self.__ram_memory_size = ram_memory_size
         self.__page_size = page_size
         self.__page_per_process = page_per_process
@@ -49,7 +49,7 @@ class MemoryManager(ABC):
         """
         reserved_pages = self._page_usage_table.get(process.id, 0)
 
-        if reserved_pages >= self.page_per_process:
+        if self.page_per_process is not None and reserved_pages >= self.page_per_process:
             raise OverflowError("Max amount of memory page exceeded.")
 
         self._page_usage_table[process.id] = self._page_usage_table.get(process.id, 0) + 1

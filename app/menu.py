@@ -12,13 +12,16 @@ from process_scheduler.round_robin import RoundRobinProcessScheduler
 from process_scheduler.sjf import SJFProcessScheduler
 
 import json
+import os
 
 
 class MenuWindow(Tk):
     """
     Classe para criar uma tela inicial de menu.
     """
+
     __NOT_REQUIRED_MESSAGE = "(not required)"
+    __CONFIG_FILENAME = "config.cfg"
 
     def __init__(self, title: str = "Window", size: tuple[int] = (350, 450)):
         super().__init__()
@@ -99,7 +102,7 @@ class MenuWindow(Tk):
         self.__closed = False
 
         if self.__save_config.get():
-            with open("config.cfg", "w") as file:
+            with open(self.__CONFIG_FILENAME, "w") as file:
                 file.write(json.dumps({
                     "cpu_algorithm": self.get_process_scheduler().name,
                     "quantum": self.__entry_2.get(),
@@ -111,6 +114,52 @@ class MenuWindow(Tk):
                 }, indent = " " * 4))
 
         self.destroy()
+
+    def __load_config_from_file(self):
+        """
+        Carrega as configurações do arquivo de configurações, caso exista.
+        """
+        if not os.path.exists(self.__CONFIG_FILENAME): return
+
+        with open(self.__CONFIG_FILENAME, encoding = "UTF-8") as file:
+            data = json.loads(file.read())
+
+        cpu_algorithms = [
+            FIFOProcessScheduler,
+            SJFProcessScheduler,
+            RoundRobinProcessScheduler,
+            EDFProcessScheduler
+        ]
+        cpu_algorithms_dict = {algorithm(0, 0).name: algorithm for algorithm in cpu_algorithms}
+        cpu_algorithm = cpu_algorithms_dict.get(data.get("cpu_algorithm"), FIFOProcessScheduler)
+
+        self.__entry_2.delete(0, "end")
+        self.__entry_3.delete(0, "end")
+
+        self.__set_cpu_algorithm(cpu_algorithms.index(cpu_algorithm))
+
+        self.__entry_2.insert(0, str(data.get("quantum", "")))
+        self.__entry_3.insert(0, str(data.get("context_switching", "")))
+
+        paging_algorithms = [
+            FIFOProcessScheduler,
+            LRUMemoryManager
+        ]
+        paging_algorithms_dict = {algorithm(1, 1).name: algorithm for algorithm in paging_algorithms}
+        paging_algorithm = paging_algorithms_dict.get(data.get("paging_algorithm"), FIFOMemoryManager)
+
+        self.__entry_4.delete(0, "end")
+        self.__entry_5.delete(0, "end")
+        self.__entry_6.delete(0, "end")
+
+        self.__set_memory_algorithm(paging_algorithms.index(paging_algorithm))
+
+        self.__entry_4.delete(0, "end")
+        self.__entry_4.insert(0, str(data.get("ram_size", "")))
+        self.__entry_5.delete(0, "end")
+        self.__entry_5.insert(0, str(data.get("page_size", "")))
+        self.__entry_6.delete(0, "end")
+        self.__entry_6.insert(0, str(data.get("page_per_process", "")))
 
     def __set_cpu_algorithm(self, index: int):
         """
@@ -163,9 +212,12 @@ class MenuWindow(Tk):
         """
         Valida a entrada do usuário nas Entrys relacionadas à CPU.
         """
+
         if self.__cpu_algorithm not in [RoundRobinProcessScheduler, EDFProcessScheduler]:
             if string == self.__NOT_REQUIRED_MESSAGE:
                 return True
+            if self.__NOT_REQUIRED_MESSAGE in string:
+                return False
 
             self.__entry_2.delete(0, "end")
             self.__entry_3.delete(0, "end")
@@ -334,6 +386,9 @@ class MenuWindow(Tk):
             font = ("Arial", int(self.__size[0] * 0.06))
         )
         self.__button.pack(pady = 10, expand = True, fill = "x")
+
+        # Carrega as informações do arquivo de configurações.
+        self.__load_config_from_file()
 
     def get_log_config(self) -> bool:
         """
