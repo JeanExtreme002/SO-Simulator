@@ -11,6 +11,8 @@ from process_scheduler.fifo import FIFOProcessScheduler
 from process_scheduler.round_robin import RoundRobinProcessScheduler
 from process_scheduler.sjf import SJFProcessScheduler
 
+import json
+
 
 class MenuWindow(Tk):
     """
@@ -18,7 +20,7 @@ class MenuWindow(Tk):
     """
     __NOT_REQUIRED_MESSAGE = "(not required)"
 
-    def __init__(self, title: str = "Window", size: tuple[int] = (350, 400)):
+    def __init__(self, title: str = "Window", size: tuple[int] = (350, 450)):
         super().__init__()
         self.__size = size
 
@@ -28,7 +30,7 @@ class MenuWindow(Tk):
         self.__quantum = None
 
         # Configurações relacionadas à paginação.
-        self.__memory_algorithm = FIFOMemoryManager
+        self.__paging_algorithm = FIFOMemoryManager
         self.__ram_memory_size = 200 * 1000
         self.__memory_page_size = 4 * 1000
         self.__page_per_process = 10
@@ -95,6 +97,19 @@ class MenuWindow(Tk):
         self.__page_per_process = int(self.__page_per_process)
 
         self.__closed = False
+
+        if self.__save_config.get():
+            with open("config.cfg", "w") as file:
+                file.write(json.dumps({
+                    "cpu_algorithm": self.get_process_scheduler().name,
+                    "quantum": self.__entry_2.get(),
+                    "context_switching": self.__entry_3.get(),
+                    "paging_algorithm": self.get_memory_manager().name,
+                    "ram_size": self.__entry_4.get(),
+                    "page_size": self.__entry_5.get(),
+                    "page_per_process": self.__entry_6.get(),
+                }, indent = " " * 4))
+
         self.destroy()
 
     def __set_cpu_algorithm(self, index: int):
@@ -130,8 +145,8 @@ class MenuWindow(Tk):
         """
         Define o algorimo (classe) que será utilizado para paginação.
         """
-        self.__memory_algorithm = [
-            None, None
+        self.__paging_algorithm = [
+            FIFOMemoryManager, LRUMemoryManager
         ][index]
 
         self.__menu_button_2.config(text = ["FIFO", "LRU"][index])
@@ -300,6 +315,19 @@ class MenuWindow(Tk):
         self.__log_checkbutton.select()
         self.__log_checkbutton.pack(side = "left")
 
+        # Widgets para configuração de salvar as configurações ou não.
+        self.__frame_9 = Frame(self.__main_frame)
+        self.__frame_9["bg"] = "white"
+        self.__frame_9.pack(expand = True, fill = "x")
+
+        self.__save_config = BooleanVar()
+
+        self.__save_config_checkbutton = Checkbutton(
+            self.__frame_9, text = "Salvar configurações?",
+            background = "white", variable = self.__save_config
+        )
+        self.__save_config_checkbutton.pack(side = "left")
+
         # Botão para sair do menu de configuração.
         self.__button = Button(
             self.__main_frame, text = "Iniciar", command = self.__finish_config,
@@ -317,7 +345,7 @@ class MenuWindow(Tk):
         """
         Retorna o gerenciador de memória com base nas configurações inseridas pelo usuário.
         """
-        return self.__memory_algorithm(self.__ram_memory_size, self.__memory_page_size, self.__page_per_process)
+        return self.__paging_algorithm(self.__ram_memory_size, self.__memory_page_size, self.__page_per_process)
 
     def get_process_scheduler(self) -> ProcessScheduler:
         """
