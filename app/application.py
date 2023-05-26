@@ -1,5 +1,5 @@
 from tkinter import Button, BooleanVar, Canvas, Checkbutton, Entry, Frame, Label, Listbox, Scrollbar, Tk
-from typing import Tuple
+from typing import Optional, Tuple
 
 from app.memory_window import MemoryWindow
 from memory_paging import MemoryManager
@@ -21,6 +21,7 @@ class Application(Tk):
         self.__memory_window_title = memory_window_title
 
         self.__size = size
+        self.__paused = False
 
         self.__generate_log_file = False
         self.__log_filename = "process_log.txt"
@@ -148,6 +149,9 @@ class Application(Tk):
         """
         Evento executado periodicamente pela interface gráfica.
         """
+        if self.__paused:
+            return self.after(self.__on_update_interval, self.__on_update)
+
         self.__canvas.delete("all")
 
         if len(self.__process_history) == 0:
@@ -318,6 +322,7 @@ class Application(Tk):
         Constrói a parte gráfica da janela.
         """
         self["bg"] = "white"
+        button_width = int(self.__size[0] * 0.014)
 
         self.__main_frame = Frame(self)
         self.__main_frame["bg"] = "white"
@@ -369,13 +374,18 @@ class Application(Tk):
         self.__process_list_box_scrollbar.pack(side = "right", fill = "both")
         self.__process_list_box.config(yscrollcommand= self.__process_list_box_scrollbar.set)
 
+        # Frame para inserir widgets relacionados à entrada do usuário.
+        self.__input_frame = Frame(self.__main_frame)
+        self.__input_frame["bg"] = "white"
+        self.__input_frame.pack(side = "left", expand = True, fill = "x")
+
         # Widgets para receber as entradas do usuário para adicionar um novo processo.
-        self.__add_process_frame = Frame(self.__main_frame)
+        self.__add_process_frame = Frame(self.__input_frame)
         self.__add_process_frame["bg"] = "white"
         self.__add_process_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__add_process_button = Button(
-            self.__add_process_frame, text = "Adicionar Processo", width = int(self.__size[0] * 0.013),
+            self.__add_process_frame, text = "Adicionar Processo", width = button_width,
             command = self.__add_process, background = "lightgreen"
         )
         self.__add_process_button.pack(padx = 10, side = "left")
@@ -418,12 +428,12 @@ class Application(Tk):
         self.__critical_checkbutton.pack(side="left")
 
         # Widgets para receber as entradas do usuário para adicionar memória à um processo.
-        self.__add_memory_frame = Frame(self.__main_frame)
+        self.__add_memory_frame = Frame(self.__input_frame)
         self.__add_memory_frame["bg"] = "white"
         self.__add_memory_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__add_memory_button = Button(
-            self.__add_memory_frame, text = "Adicionar Memória", width = int(self.__size[0] * 0.013),
+            self.__add_memory_frame, text = "Adicionar Memória", width = button_width,
             command = self.__add_memory, background = "lightblue"
         )
         self.__add_memory_button.pack(padx = 10, side = "left")
@@ -451,12 +461,12 @@ class Application(Tk):
         self.__extra_memory_entry.pack(side = "left")
 
         # Widgets para receber as entradas do usuário para usar uma dada página de um processo.
-        self.__use_memory_frame = Frame(self.__main_frame)
+        self.__use_memory_frame = Frame(self.__input_frame)
         self.__use_memory_frame["bg"] = "white"
         self.__use_memory_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
         self.__use_memory_button = Button(
-            self.__use_memory_frame, text = "Usar Página", width = int(self.__size[0] * 0.013),
+            self.__use_memory_frame, text = "Usar Página", width = button_width,
             command = self.__use_memory_page, background = "orange"
         )
         self.__use_memory_button.pack(padx = 10, side = "left")
@@ -484,6 +494,28 @@ class Application(Tk):
         self.__memory_address_entry = Entry(self.__use_memory_frame)
         self.__memory_address_entry.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
         self.__memory_address_entry.pack(side = "left")
+
+        # Cria botão para controlar a execução do simulador.
+        self.__control_frame = Frame(self.__main_frame)
+        self.__control_frame["bg"] = "white"
+        self.__control_frame.pack(side = "left", expand = True, fill = "x")
+
+        self.__control_button = Button(
+            self.__control_frame, text = "Pausar Simulação",
+            width = button_width, background = "#ff6961",
+            command = self.switch_simulation_status
+        )
+        self.__control_button.pack()
+
+    def switch_simulation_status(self, pause: Optional[bool] = None):
+        """
+        Pausa a simulação.
+        """
+        if pause is None: self.__paused = not self.__paused
+        else: self.__paused = pause
+
+        self.__control_button.config(background="#87cefa" if self.__paused else "#ff6961")
+        self.__control_button.config(text="Continuar Simulação" if self.__paused else "Pausar Simulação")
 
     def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
         """
