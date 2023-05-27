@@ -111,6 +111,8 @@ class MenuWindow(Tk):
                     "ram_size": self.__entry_4.get(),
                     "page_size": self.__entry_5.get(),
                     "page_per_process": self.__entry_6.get(),
+                    "generate_log_file": self.__generate_log_file.get(),
+                    "save_config": self.__save_config.get()
                 }, indent = " " * 4))
 
         self.destroy()
@@ -160,6 +162,12 @@ class MenuWindow(Tk):
         self.__entry_5.insert(0, str(data.get("page_size", "")))
         self.__entry_6.delete(0, "end")
         self.__entry_6.insert(0, str(data.get("page_per_process", "")))
+
+        self.__generate_log_file_checkbutton.deselect()
+        self.__save_config_checkbutton.deselect()
+
+        if data.get("generate_log_file", True) is True: self.__generate_log_file_checkbutton.select()
+        if data.get("save_config", False) is True: self.__save_config_checkbutton.select()
 
     def __set_cpu_algorithm(self, index: int):
         """
@@ -360,12 +368,12 @@ class MenuWindow(Tk):
 
         self.__generate_log_file = BooleanVar()
 
-        self.__log_checkbutton = Checkbutton(
+        self.__generate_log_file_checkbutton = Checkbutton(
             self.__frame_8, text = "Gerar arquivo de log?",
             background = "white", variable = self.__generate_log_file
         )
-        self.__log_checkbutton.select()
-        self.__log_checkbutton.pack(side = "left")
+        self.__generate_log_file_checkbutton.select()
+        self.__generate_log_file_checkbutton.pack(side = "left")
 
         # Widgets para configuração de salvar as configurações ou não.
         self.__frame_9 = Frame(self.__main_frame)

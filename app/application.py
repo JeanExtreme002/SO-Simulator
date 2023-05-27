@@ -432,7 +432,6 @@ class Application(Tk):
             self.__add_process_frame, text = "Regime Crítico?",
             background = "white", variable = self.__is_critical
         )
-        self.__critical_checkbutton.select()
         self.__critical_checkbutton.pack(side="left")
 
         # Widgets para receber as entradas do usuário para adicionar memória à um processo.
