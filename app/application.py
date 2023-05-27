@@ -5,6 +5,7 @@ from app.memory_window import MemoryWindow
 from memory_paging import MemoryManager
 from process import Process
 from process_scheduler import ProcessScheduler
+from process_scheduler.edf import EDFProcessScheduler
 
 import random
 
@@ -75,8 +76,12 @@ class Application(Tk):
         if not memory: return self.__memory_label.config(foreground = "red")
         if deadline and not deadline.replace("0", ""): return
 
+        if not deadline and isinstance(self.__process_scheduler, EDFProcessScheduler):
+            return self.__deadline_label.config(foreground = "red")
+
         self.__duration_label.config(foreground = "black")
         self.__memory_label.config(foreground = "black")
+        self.__deadline_label.config(foreground="black")
 
         duration = int(duration)
         deadline = int(deadline) if deadline else None
