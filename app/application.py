@@ -186,6 +186,9 @@ class Application(Tk):
 
             self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
+        elif process and process.has_died() and process.is_critical:
+            return self.__on_update()
+
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():
             if process.is_finished() and not any(self.__process_history[process.index]):
