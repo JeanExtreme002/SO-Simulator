@@ -36,6 +36,7 @@ class FIFOMemoryManager(MemoryManager):
         # Verifica se existe espaço livre na memória RAM e define a página para o processo.
         for real_address in range(len(self._real_memory_table)):
             if self._real_memory_table[real_address][0] is None:
+                self._virtual_memory_table[(process.id, virtual_page_address)] = real_address
                 return self._set_real_page(process, real_address)
 
         # Sobrescreve a página mais antiga criada.
@@ -48,6 +49,7 @@ class FIFOMemoryManager(MemoryManager):
                 for key, value in self._virtual_memory_table.items():
                     if key[0] == sorted_real_memory_table[0][0].id and value == real_address:
                         self._virtual_memory_table[key] = None
+                        break
 
                 # Define a referência para a página de memória virtual utilizada.
                 self._virtual_memory_table[(process.id, virtual_page_address)] = real_address

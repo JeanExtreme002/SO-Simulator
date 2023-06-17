@@ -92,7 +92,7 @@ class MemoryWindow(Toplevel):
 
         for real_address, process_id, virtual_address, last_use in real_memory_table:
             if process_id is None: continue
-            data[real_address] = (str(process_id), virtual_address, last_use)
+            data[real_address] = (str(process_id), str(virtual_address), last_use)
 
         for process_id, virtual_address, last_use in data:
             self.__list_box_2.insert("end", process_id)

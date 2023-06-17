@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 from process import Process
 
+import time
+
 
 class MemoryManager(ABC):
     def __init__(self, ram_memory_size: int, page_size: int, page_per_process: Optional[int] = None):
@@ -46,6 +48,8 @@ class MemoryManager(ABC):
         """
         self._real_memory_table[real_memory_address] = (process, None, datetime.now(), datetime.now())
         self._use(process, real_memory_address)
+
+        time.sleep(0.01)
 
     def _use(self, process: Process, real_memory_address: int, new_value: Optional[Any] = None) -> Any:
         """
@@ -92,15 +96,17 @@ class MemoryManager(ABC):
                 self._virtual_memory_table.pop(key)
             self._set_real_page(None, value)
 
-    def get_real_memory_table(self) -> List[Tuple[int, Optional[id], Optional[str]]]:
+    def get_real_memory_table(self) -> List[Tuple[int, Optional[id], Optional[int], str]]:
         """
-        Retorna uma lista contendo tuplas no formato (Real Memory ID, Process ID, Virtual Memory ID).
+        Retorna uma lista contendo tuplas no formato (Real Memory ID, Process ID, Virtual Memory ID, Último Uso).
         """
-        table: List[Tuple[int, Optional[id], Optional[str]]] = list()
+        table: List[Tuple[int, Optional[id], Optional[int], str]] = list()
 
         for key, value in self._virtual_memory_table.items():
             if value is not None:
-                table.append((value, key[0], hex(key[1])[2:]))
+                last_used = self._real_memory_table[value][-1]
+                last_used = last_used.strftime("%d/%m/%Y %H:%M:%S")
+                table.append((value, key[0], key[1], last_used))
 
         return table
 
