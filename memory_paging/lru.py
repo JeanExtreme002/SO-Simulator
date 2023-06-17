@@ -1,51 +1,41 @@
+from typing import List
 from memory_paging import MemoryManager
 from process import Process
 
 
 class LRUMemoryManager(MemoryManager):
 
-    __count = 0
-
     @property
     def name(self) -> str:
         return "Least Recently Used (LRU)"
 
-    def __find_least_recently_used_address(self) -> int:
+    def alloc_memory(self, process: Process, memory: int) -> List[int]:
         """
-        Retorna o endereço da página menos recentemente utilizada.
+        Aloca um espaço na memória para o processo.
         """
-        minimum, address = float("inf"), 0
+        virtual_page_addresses = super().alloc_memory(process, memory)
 
-        for index in range(self.ram_memory_pages):
-            value = self._real_memory_table[index][1]
-            if value < minimum: minimum, address = value, index
-        return address
+        for address in virtual_page_addresses:
+            self.use(process, address)
 
-    def reserve(self, process: Process) -> str:
-        """
-        Reserva uma página para o dado processo.
+        return virtual_page_addresses
 
-        :return: Retorna o endereço da página em hexadecimal.
-        """
-        if self.__count < self.ram_memory_pages:
-            real_memory_address = self.__count
-            self.__count += 1
-        else:
-            real_memory_address = self.__find_least_recently_used_address()
-
-        return super()._reserve(process, real_memory_address, 1)
-
-    def use(self, process: Process, memory_page_address: str):
+    def use(self, process: Process, virtual_page_address: int):
         """
         Utiliza uma página de memória em uma dado endereço.
         """
-        real_memory_address = self._translate_to_real_memory_address(memory_page_address)
+        if (process.id, virtual_page_address) not in self._virtual_memory_table:
+            raise ValueError("Invalid memory address.")
 
-        # Aumenta a pontuação da página de memória utilizada.
-        value = super()._use(process, real_memory_address)
-        self._real_memory_table[real_memory_address][1] += 1
+        # Se a página já estiver na RAM, a mesma será utilizada e nada além disso será feito.
+        if self._virtual_memory_table[(process.id, virtual_page_address)] is not None:
+            return self._use(process, self._virtual_memory_table[(process.id, virtual_page_address)])
 
-        # Diminui a pontuação das outras páginas de memória.
-        for address in range(self.ram_memory_pages):
-            if address == real_memory_address: continue
-            self._real_memory_table[address][1] -= 1
+        # Verifica se existe espaço livre na memória RAM e define a página para o processo.
+        for real_address in range(len(self._real_memory_table)):
+            if self._real_memory_table[real_address][0] is None:
+                self._virtual_memory_table[(process.id, virtual_page_address)] = real_address
+                return self._set_real_page(process, real_address)
+
+        # Sobrescreve a página ...
+        # TODO: Write here your code...
