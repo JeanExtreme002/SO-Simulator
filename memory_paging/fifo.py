@@ -29,9 +29,9 @@ class FIFOMemoryManager(MemoryManager):
         if (process.id, virtual_page_address) not in self._virtual_memory_table:
             raise ValueError("Invalid memory address.")
 
-        # Se a página já estiver na RAM, nada será feito.
+        # Se a página já estiver na RAM, a mesma será utilizada e nada além disso será feito.
         if self._virtual_memory_table[(process.id, virtual_page_address)] is not None:
-            return
+            return self._use(process, self._virtual_memory_table[(process.id, virtual_page_address)])
 
         # Verifica se existe espaço livre na memória RAM e define a página para o processo.
         for real_address in range(len(self._real_memory_table)):

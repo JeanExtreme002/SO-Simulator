@@ -293,9 +293,6 @@ class Application(Tk):
         if not page_address:
             return
 
-        if not page_address.startswith("0x") or not page_address.replace("0x", ""):
-            return self.__memory_address_label.config(foreground = "red")
-
         if not process_id:
             return self.__use_process_id_label.config(foreground = "red")
 
@@ -304,7 +301,7 @@ class Application(Tk):
             if process.id == int(process_id): break
         else: return self.__use_process_id_label.config(foreground="red")
 
-        try: self.__memory_manager.use(process, page_address)
+        try: self.__memory_manager.use(process, int(page_address))
         except ValueError: return self.__memory_address_label.config(foreground = "red")
 
         self.__memory_window.update_real_memory_table(self.__memory_manager)
