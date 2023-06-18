@@ -73,7 +73,7 @@ class MemoryManager(ABC):
         :return: Lista com os endereços das páginas utilizadas pelo processo, em hexadecimal.
         """
         memory_addresses = []
-
+        
         if memory > self.page_per_process * self.page_size:
             raise OverflowError("Max amount of memory page exceeded.")
 
@@ -91,11 +91,16 @@ class MemoryManager(ABC):
         """
         Libera a memória utiliza por um processo.
         """
+        keys = list()
+        
         for key, value in self._virtual_memory_table.items():
             if key[0] == process.id:
-                self._virtual_memory_table.pop(key)
-            self._set_real_page(None, value)
+                self._real_memory_table[value] = (process, None, datetime.now(), datetime.now())
+                keys.append(key)
 
+        for key in keys:
+            self._virtual_memory_table.pop(key)
+            
     def get_virtual_memory_table(self) -> List[Tuple[id, id, Optional[int], Optional[str]]]:
         """
         Retorna uma lista contendo tuplas no formato (Process ID, Virtual Memory ID, Real Memory ID, Último Uso).
