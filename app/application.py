@@ -105,7 +105,9 @@ class Application(Tk):
         )
         process.index = len(self.__process_history)
 
-        self.__memory_manager.alloc_memory(process, memory)
+        try: self.__memory_manager.alloc_memory(process, memory)
+        except OverflowError: return self.__memory_label.config(foreground = "red")
+        
         self.__process_count += 1
 
         color = (random.randint(100, 200), random.randint(100, 200), random.randint(100, 200))

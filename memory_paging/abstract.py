@@ -49,7 +49,7 @@ class MemoryManager(ABC):
         self._real_memory_table[real_memory_address] = (process, None, datetime.now(), datetime.now())
         self._use(process, real_memory_address)
 
-        time.sleep(0.01)
+        time.sleep(0.01)  # Garante que todas as páginas possuirão um tempo de criação diferente.
 
     def _use(self, process: Process, real_memory_address: int, new_value: Optional[Any] = None) -> Any:
         """
@@ -69,10 +69,13 @@ class MemoryManager(ABC):
     def alloc_memory(self, process: Process, memory: int) -> List[int]:
         """
         Aloca um espaço na memória para o processo.
-
-        :return: Lista com os endereços das páginas utilizadas pelo processo, em hexadecimal.
         """
         memory_addresses = []
+
+        total_used = memory + sum([self.page_size for pid, vmem_addr in self._virtual_memory_table if pid == process.id])
+
+        if total_used > self.page_per_process * self.page_size:
+            raise OverflowError("Max amount of memory page exceeded.")
 
         while memory > 0:
             virtual_address = self.__incremented_virutal_page_address
