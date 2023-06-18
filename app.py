@@ -11,7 +11,8 @@ if __name__ == "__main__":
 
         application = Application(
             title = f"Simulador - {process_scheduler.name} Algorithm",
-            memory_window_title = f"Simulador - {memory_manager.name} Paging Algorithm"
+            real_memory_window_title = "Real Memory Table",
+            virtual_memory_window_title = "Virtual Memory Table"
         )
         application.build()
         application.run(

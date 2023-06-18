@@ -96,18 +96,20 @@ class MemoryManager(ABC):
                 self._virtual_memory_table.pop(key)
             self._set_real_page(None, value)
 
-    def get_real_memory_table(self) -> List[Tuple[int, Optional[id], Optional[int], str]]:
+    def get_virtual_memory_table(self) -> List[Tuple[id, id, Optional[int], Optional[str]]]:
         """
-        Retorna uma lista contendo tuplas no formato (Real Memory ID, Process ID, Virtual Memory ID, Último Uso).
+        Retorna uma lista contendo tuplas no formato (Process ID, Virtual Memory ID, Real Memory ID, Último Uso).
         """
-        table: List[Tuple[int, Optional[id], Optional[int], str]] = list()
+        table: List[Tuple[id, id, Optional[int], Optional[str]]] = list()
 
         for key, value in self._virtual_memory_table.items():
+            last_used_at = None
+            
             if value is not None:
-                last_used = self._real_memory_table[value][-1]
-                last_used = last_used.strftime("%d/%m/%Y %H:%M:%S")
-                table.append((value, key[0], key[1], last_used))
-
+                last_used_at = self._real_memory_table[value][-1]
+                last_used_at = last_used_at.strftime("%d/%m/%Y %H:%M:%S")
+            table.append((key[0], key[1], value, last_used_at))
+            
         return table
 
     @abstractmethod

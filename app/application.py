@@ -1,7 +1,8 @@
 from tkinter import Button, BooleanVar, Canvas, Checkbutton, Entry, Frame, Label, Listbox, Scrollbar, Tk
 from typing import Optional, Tuple
 
-from app.memory_window import MemoryWindow
+from app.real_memory_window import RealMemoryWindow
+from app.virtual_memory_window import VirtualMemoryWindow
 from memory_paging import MemoryManager
 from process import Process
 from process_scheduler import ProcessScheduler
@@ -15,11 +16,18 @@ class Application(Tk):
     Classe principal da aplicação.
     """
 
-    def __init__(self, title: str = "Window", memory_window_title: str = "Window", size: tuple[int] = (1280, 720)):
+    def __init__(
+        self,
+        title: str = "Window",
+        real_memory_window_title: str = "Window",
+        virtual_memory_window_title: str = "Window",
+        size: tuple[int] = (1280, 720)
+        ):
         super().__init__()
 
         self.__title = title
-        self.__memory_window_title = memory_window_title
+        self.__real_memory_window_title = real_memory_window_title
+        self.__virtual_memory_window_title = virtual_memory_window_title
 
         self.__size = size
         self.__paused = False
@@ -62,7 +70,8 @@ class Application(Tk):
         try: self.__memory_manager.alloc_memory(process, int(memory))
         except OverflowError: return self.__extra_memory_label.config(foreground = "red")
 
-        self.__memory_window.update_real_memory_table(self.__memory_manager)
+        self.__real_memory_window.update_table()
+        self.__virtual_memory_window.update_table()
 
     def __add_process(self):
         """
@@ -108,7 +117,9 @@ class Application(Tk):
         self.__process_history.append([None] * self.__history_length)
 
         self.__process_list.append(process)
-        self.__memory_window.update_real_memory_table(self.__memory_manager)
+        
+        self.__real_memory_window.update_table()
+        self.__virtual_memory_window.update_table()
 
     def __append_to_log_file(self, string):
         """
@@ -182,7 +193,7 @@ class Application(Tk):
             # Libera a memória utilizada pelo processo.
             if process.is_finished():
                 self.__memory_manager.free_memory(process)
-                self.__memory_window.update_real_memory_table(self.__memory_manager)
+                self.__real_memory_window.update_real_memory_table(self.__memory_manager)
 
             self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 
@@ -304,7 +315,8 @@ class Application(Tk):
         try: self.__memory_manager.use(process, int(page_address))
         except ValueError: return self.__memory_address_label.config(foreground = "red")
 
-        self.__memory_window.update_real_memory_table(self.__memory_manager)
+        self.__real_memory_window.update_table()
+        self.__virtual_memory_window.update_table()
 
     def __validate_entry(self, string):
         """
@@ -531,8 +543,11 @@ class Application(Tk):
         self.__on_update_interval = interval
         self.__generate_log_file = generate_log_file
 
-        self.__memory_window = MemoryWindow(self.__memory_window_title)
-        self.__memory_window.build(memory_manager.ram_memory_pages)
+        self.__real_memory_window = RealMemoryWindow(self.__real_memory_window_title)
+        self.__real_memory_window.build(memory_manager)
+
+        self.__virtual_memory_window = VirtualMemoryWindow(self.__virtual_memory_window_title)
+        self.__virtual_memory_window.build(memory_manager)
 
         self.after(self.__on_update_interval, self.__on_update)
         self.mainloop()

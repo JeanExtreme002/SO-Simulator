@@ -327,7 +327,7 @@ class MenuWindow(Tk):
         self.__label_5.pack(side = "left")
 
         self.__entry_4 = Entry(self.__frame_5, width = 4)
-        self.__entry_4.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_4.config(validate = "key", validatecommand = (self.__entry_reg_2, "%P"))
         self.__entry_4.insert(0, str(self.__ram_memory_size))
         self.__entry_4.pack(side = "left", expand = True, fill = "x")
 
@@ -340,7 +340,7 @@ class MenuWindow(Tk):
         self.__label_6.pack(side = "left")
 
         self.__entry_5 = Entry(self.__frame_6, width = 4)
-        self.__entry_5.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_5.config(validate = "key", validatecommand = (self.__entry_reg_2, "%P"))
         self.__entry_5.insert(0, str(self.__memory_page_size))
         self.__entry_5.pack(side = "left", expand = True, fill = "x")
 
@@ -353,7 +353,7 @@ class MenuWindow(Tk):
         self.__label_7.pack(side = "left")
 
         self.__entry_6 = Entry(self.__frame_7, width = 4)
-        self.__entry_6.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__entry_6.config(validate = "key", validatecommand = (self.__entry_reg_2, "%P"))
         self.__entry_6.insert(0, str(self.__page_per_process))
         self.__entry_6.pack(side = "left", expand = True, fill = "x")
 

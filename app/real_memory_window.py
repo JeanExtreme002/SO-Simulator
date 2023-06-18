@@ -4,9 +4,9 @@ from typing import List, Optional, Tuple
 from memory_paging import MemoryManager
 
 
-class MemoryWindow(Toplevel):
+class RealMemoryWindow(Toplevel):
     """
-    Classe para criar uma tela para mostrar as páginas de memória.
+    Classe para criar uma tela para mostrar as páginas de memória reais.
     """
 
     def __init__(self, title: str = "Window", size: tuple[int] = (600, 600)):
@@ -35,11 +35,11 @@ class MemoryWindow(Toplevel):
         self.__list_box_4.yview("scroll", event.delta, "units")
         return "break"
 
-    def build(self, pages: int):
+    def build(self, memory_manager: MemoryManager):
         """
         Constrói a parte gráfica da janela.
         """
-        self.__pages = pages
+        self.__memory_manager = memory_manager
 
         self.__main_frame = Frame(self)
         self.__main_frame.pack(expand = True, fill = "both")
@@ -47,8 +47,8 @@ class MemoryWindow(Toplevel):
         self.__list_box_1 = Listbox(self.__main_frame, width = 20, background = "white")
         self.__list_box_1.insert(0, "Endereço Real:")
 
-        for index in range(pages):
-            self.__list_box_1.insert(index, str(index))
+        for index in range(self.__memory_manager.ram_memory_pages):
+            self.__list_box_1.insert("end", str(index))
 
         self.__list_box_1.bind("<MouseWheel>", self.__on_mouse_wheel)
         self.__list_box_1.pack(side = "left", fill = "y", ipadx = 0)
@@ -78,23 +78,20 @@ class MemoryWindow(Toplevel):
         self.__list_box_4.config(yscrollcommand = self.__scrollbar.set)
         self.__scrollbar.pack(side = "left", expand = True, fill = "both")
 
-    def update_real_memory_table(self, memory_manager: MemoryManager):
+    def update_table(self):
         """
         Atualiza a tabela com as informações da memória real.
         """
-        real_memory_table = memory_manager.get_real_memory_table()
-
         self.__list_box_2.delete(1, "end")
         self.__list_box_3.delete(1, "end")
         self.__list_box_4.delete(1, "end")
 
-        data = [("", "", "")] * self.__pages
+        data = [("", "", "")] * self.__memory_manager.ram_memory_pages
 
-        for real_address, process_id, virtual_address, last_use in real_memory_table:
-            if process_id is None: continue
-            data[real_address] = (str(process_id), str(virtual_address), last_use)
+        for process_id, virtual_address, real_address, last_used_at in self.__memory_manager.get_virtual_memory_table():
+            if real_address is not None: data[real_address] = (str(process_id), str(virtual_address), last_used_at)
 
-        for process_id, virtual_address, last_use in data:
+        for process_id, virtual_address, last_used_at in data:
             self.__list_box_2.insert("end", process_id)
             self.__list_box_3.insert("end", virtual_address)
-            self.__list_box_4.insert("end", last_use)
+            self.__list_box_4.insert("end", last_used_at)
