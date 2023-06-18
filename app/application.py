@@ -59,12 +59,12 @@ class Application(Tk):
         self.__process_id_label.config(foreground = "black")
         self.__extra_memory_label.config(foreground = "black")
 
-        if not memory.replace("0", ""): return
+        if not memory.replace("0", ""): return self.__extra_memory_label.config(foreground = "red")
         if not process_id: return self.__process_id_label.config(foreground = "red")
 
-        # Verifica se o processo existe.
+        # Verifica se o processo existe e não está morto ou terminou.
         for process in self.__process_list:
-            if process.id == int(process_id): break
+            if process.id == int(process_id) and not process.has_died() and not process.is_finished(): break
         else: return self.__process_id_label.config(foreground="red")
 
         try: self.__memory_manager.alloc_memory(process, int(memory))
@@ -105,9 +105,7 @@ class Application(Tk):
         )
         process.index = len(self.__process_history)
 
-        try: self.__memory_manager.alloc_memory(process, memory)
-        except OverflowError: return self.__memory_label.config(foreground = "red")
-
+        self.__memory_manager.alloc_memory(process, memory)
         self.__process_count += 1
 
         color = (random.randint(100, 200), random.randint(100, 200), random.randint(100, 200))
@@ -193,7 +191,8 @@ class Application(Tk):
             # Libera a memória utilizada pelo processo.
             if process.is_finished():
                 self.__memory_manager.free_memory(process)
-                self.__real_memory_window.update_real_memory_table(self.__memory_manager)
+                self.__real_memory_window.update_table()
+                self.__virtual_memory_window.update_table()
 
             self.__process_history[process.index][self.__history_length - 1] = (process.id, process.color)
 

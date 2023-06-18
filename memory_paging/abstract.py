@@ -73,9 +73,6 @@ class MemoryManager(ABC):
         :return: Lista com os endereços das páginas utilizadas pelo processo, em hexadecimal.
         """
         memory_addresses = []
-        
-        if memory > self.page_per_process * self.page_size:
-            raise OverflowError("Max amount of memory page exceeded.")
 
         while memory > 0:
             virtual_address = self.__incremented_virutal_page_address
