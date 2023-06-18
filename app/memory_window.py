@@ -47,7 +47,7 @@ class MemoryWindow(Toplevel):
         self.__list_box_1 = Listbox(self.__main_frame, width = 20, background = "white")
         self.__list_box_1.insert(0, "Endereço Real:")
 
-        for index in range(1, pages + 1):
+        for index in range(pages):
             self.__list_box_1.insert(index, str(index))
 
         self.__list_box_1.bind("<MouseWheel>", self.__on_mouse_wheel)

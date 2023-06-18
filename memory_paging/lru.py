@@ -37,5 +37,18 @@ class LRUMemoryManager(MemoryManager):
                 self._virtual_memory_table[(process.id, virtual_page_address)] = real_address
                 return self._set_real_page(process, real_address)
 
-        # Sobrescreve a página ...
-        # TODO: Write here your code...
+        # Sobrescreve a página menos recém utilizada.
+        sorted_real_memory_table = sorted(self._real_memory_table, key = lambda page: page[3])
+
+        for real_address in range(len(self._real_memory_table)):
+            if self._real_memory_table[real_address] == sorted_real_memory_table[0]:
+
+                # Apaga a referência da página de memória virtual que está atualmente na RAM.
+                for key, value in self._virtual_memory_table.items():
+                    if key[0] == sorted_real_memory_table[0][0].id and value == real_address:
+                        self._virtual_memory_table[key] = None
+                        break
+
+                # Define a referência para a página de memória virtual utilizada.
+                self._virtual_memory_table[(process.id, virtual_page_address)] = real_address
+                return self._set_real_page(process, real_address)
