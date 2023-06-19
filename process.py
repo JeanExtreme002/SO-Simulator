@@ -18,6 +18,7 @@ class Process(object):
         self.__deadline = deadline
         self.__ignore_deadline_error = ignore_deadline_error
         self.__is_critical = is_critical
+        self.__is_frozen = False
 
     def __str__(self):
         return f"<Process: {self.id}>"
