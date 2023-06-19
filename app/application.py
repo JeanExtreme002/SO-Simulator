@@ -1,5 +1,5 @@
 from tkinter import Button, BooleanVar, Canvas, Checkbutton, Entry, Frame, Label, Listbox, Scrollbar, Tk
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 from app.real_memory_window import RealMemoryWindow
 from app.virtual_memory_window import VirtualMemoryWindow
