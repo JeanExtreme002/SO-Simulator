@@ -42,6 +42,8 @@ class Application(Tk):
         self.__process_history = []
         self.__process_list = []
         self.__process_count = 0
+        
+        self.__scheduled_processes: List[List[Process, int, int]] = []  # Lista de [Process, memory, time]
 
         self.__last_process_list_length = self.__history_min_rows
 
@@ -73,38 +75,10 @@ class Application(Tk):
         self.__real_memory_window.update_table()
         self.__virtual_memory_window.update_table()
 
-    def __add_process(self):
+    def __add_process(self, process: Process, memory: int):
         """
-        Adiciona um novo processo para o simulador.
+        Adiciona uma instância de processo para o simulador.
         """
-        duration = self.__duration_entry.get()
-        deadline = self.__deadline_entry.get()
-        memory = self.__memory_entry.get()
-
-        if not duration or not duration.replace("0", ""): return self.__duration_label.config(foreground = "red")
-        if not memory: return self.__memory_label.config(foreground = "red")
-        if deadline and not deadline.replace("0", ""): return
-
-        if not deadline and isinstance(self.__process_scheduler, EDFProcessScheduler):
-            return self.__deadline_label.config(foreground = "red")
-
-        self.__duration_label.config(foreground = "black")
-        self.__memory_label.config(foreground = "black")
-        self.__deadline_label.config(foreground="black")
-
-        duration = int(duration)
-        deadline = int(deadline) if deadline else None
-        memory = int(memory)
-
-        process = Process(
-            process_id = self.__process_count,
-            duration = duration,
-            deadline = deadline,
-            ignore_deadline_error = True,
-            is_critical = self.__is_critical.get()
-        )
-        process.index = len(self.__process_history)
-
         try: self.__memory_manager.alloc_memory(process, memory)
         except OverflowError: return self.__memory_label.config(foreground = "red")
         
@@ -120,6 +94,52 @@ class Application(Tk):
         
         self.__real_memory_window.update_table()
         self.__virtual_memory_window.update_table()
+
+    def __add_new_process(self):
+        """
+        Adiciona um novo processo para o simulador.
+        """
+        duration = self.__duration_entry.get()
+        deadline = self.__deadline_entry.get()
+        memory = self.__memory_entry.get()
+        schedule = self.__schedule_entry.get()
+
+        if not duration or not duration.replace("0", ""): return self.__duration_label.config(foreground = "red")
+        if not memory: return self.__memory_label.config(foreground = "red")
+        if not schedule: return self.__schedule_label.config(foreground = "red")
+        if deadline and not deadline.replace("0", ""): return
+
+        if not deadline and isinstance(self.__process_scheduler, EDFProcessScheduler):
+            return self.__deadline_label.config(foreground = "red")
+
+        self.__duration_label.config(foreground = "black")
+        self.__memory_label.config(foreground = "black")
+        self.__schedule_label.config(foreground = "black")
+        self.__deadline_label.config(foreground="black")
+
+        duration = int(duration)
+        deadline = int(deadline) if deadline else None
+        memory = int(memory)
+        schedule = int(schedule)
+
+        process = Process(
+            process_id = self.__process_count,
+            duration = duration,
+            deadline = deadline,
+            ignore_deadline_error = True,
+            is_critical = self.__is_critical.get()
+        )
+        process.index = len(self.__process_history)
+
+        if schedule > 0:
+            try:
+                self.__memory_manager.alloc_memory(process, memory, dry_run = True)
+                self.__scheduled_processes.append([process, memory, schedule])
+            except OverflowError:
+                return self.__memory_label.config(foreground = "red")
+        else:
+            self.__add_process(process, memory)
+
 
     def __append_to_log_file(self, string):
         """
@@ -170,6 +190,21 @@ class Application(Tk):
 
         self.__canvas.delete("all")
 
+        # Verifica se algum processo agendado já pode ser adicionado ao simulador.
+        added_processes = []
+        
+        for index in range(len(self.__scheduled_processes)):
+            process, memory, time = self.__scheduled_processes[index]
+            self.__scheduled_processes[index][-1] -= 1
+            
+            if time == 0:
+                self.__add_process(process, memory)
+                added_processes.append(self.__scheduled_processes[index])
+
+        for value in added_processes:
+            self.__scheduled_processes.remove(value)
+
+        # Se não houver mais processos para serem mostrados, apenas a grade será desenhada.
         if len(self.__process_history) == 0:
             self.__draw_grid(self.__last_process_list_length)
             return self.after(self.__on_update_interval, self.__on_update)
@@ -229,6 +264,12 @@ class Application(Tk):
 
             if self.__generate_log_file: self.__append_to_log_file(string)
             self.__process_list_box.insert(0, string)
+
+        for process, memory, time in self.__scheduled_processes:
+            string = f"Processo ID:{process.id} será adicionado à simulação em {time}s"
+            
+            if self.__generate_log_file: self.__append_to_log_file(string)
+            self.__process_list_box.insert("end", string)            
 
         if self.__generate_log_file: self.__append_to_log_file("=" * 80)
 
@@ -403,17 +444,17 @@ class Application(Tk):
         self.__input_frame.pack(side = "left", expand = True, fill = "x")
 
         # Widgets para receber as entradas do usuário para adicionar um novo processo.
-        self.__add_process_frame = Frame(self.__input_frame)
-        self.__add_process_frame["bg"] = "white"
-        self.__add_process_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
+        self.__add_new_process_frame = Frame(self.__input_frame)
+        self.__add_new_process_frame["bg"] = "white"
+        self.__add_new_process_frame.pack(padx = 10, pady = 10, expand = True, fill = "x")
 
-        self.__add_process_button = Button(
-            self.__add_process_frame, text = "Adicionar Processo", width = button_width,
-            command = self.__add_process, background = "lightgreen"
+        self.__add_new_process_button = Button(
+            self.__add_new_process_frame, text = "Adicionar Processo", width = button_width,
+            command = self.__add_new_process, background = "lightgreen"
         )
-        self.__add_process_button.pack(padx = 10, side = "left")
+        self.__add_new_process_button.pack(padx = 10, side = "left")
 
-        self.__duration_frame = Frame(self.__add_process_frame)
+        self.__duration_frame = Frame(self.__add_new_process_frame)
         self.__duration_frame["bg"] = "white"
         self.__duration_frame.pack(side = "left", padx = 10)
 
@@ -426,25 +467,33 @@ class Application(Tk):
         self.__duration_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__duration_entry.pack(side = "left")
 
-        self.__deadline_label = Label(self.__add_process_frame, text="Deadline: ", background = "white")
+        self.__deadline_label = Label(self.__add_new_process_frame, text="Deadline: ", background = "white")
         self.__deadline_label.pack(side="left")
 
-        self.__deadline_entry = Entry(self.__add_process_frame)
+        self.__deadline_entry = Entry(self.__add_new_process_frame)
         self.__deadline_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__deadline_entry.pack(side="left")
 
-        self.__memory_label = Label(self.__add_process_frame, text="Memória: ", background = "white")
+        self.__memory_label = Label(self.__add_new_process_frame, text="Memória: ", background = "white")
         self.__memory_label.pack(side="left")
 
-        self.__memory_entry = Entry(self.__add_process_frame)
+        self.__memory_entry = Entry(self.__add_new_process_frame)
         self.__memory_entry.insert(0, "0")
         self.__memory_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__memory_entry.pack(side="left")
 
+        self.__schedule_label = Label(self.__add_new_process_frame, text="Agendar: ", background = "white")
+        self.__schedule_label.pack(side="left")
+
+        self.__schedule_entry = Entry(self.__add_new_process_frame)
+        self.__schedule_entry.insert(0, "0")
+        self.__schedule_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
+        self.__schedule_entry.pack(side="left")
+
         self.__is_critical = BooleanVar()
 
         self.__critical_checkbutton = Checkbutton(
-            self.__add_process_frame, text = "Regime Crítico?",
+            self.__add_new_process_frame, text = "Regime Crítico?",
             background = "white", variable = self.__is_critical
         )
         self.__critical_checkbutton.pack(side="left")

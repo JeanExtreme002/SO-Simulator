@@ -64,16 +64,21 @@ class MemoryManager(ABC):
 
         return value
 
-    def alloc_memory(self, process: Process, memory: int) -> List[int]:
+    def alloc_memory(self, process: Process, memory: int, *, dry_run: bool = False) -> List[int]:
         """
         Aloca um espaço na memória para o processo.
+
+        :param dry_run: Apenas verifica se seria possível alocar mais memória para o processo.
         """
         memory_addresses = []
 
         total_used = memory + sum([self.page_size for pid, vmem_addr in self._virtual_memory_table if pid == process.id])
 
-        if total_used > self.page_per_process * self.page_size:
+        if total_used > self.page_per_process * self.page_size:  # Idealmente isso não deveria existir. Só existe porque um processo não roda se alguma página não estiver na RAM.
             raise OverflowError("Max amount of memory page exceeded.")
+        
+        if dry_run:
+            return list()
 
         while memory > 0:
             virtual_address = self.__incremented_virutal_page_address

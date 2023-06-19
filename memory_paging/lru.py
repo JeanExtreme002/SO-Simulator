@@ -9,11 +9,11 @@ class LRUMemoryManager(MemoryManager):
     def name(self) -> str:
         return "Least Recently Used (LRU)"
 
-    def alloc_memory(self, process: Process, memory: int) -> List[int]:
+    def alloc_memory(self, process: Process, memory: int, **kwargs) -> List[int]:
         """
         Aloca um espaço na memória para o processo.
         """
-        virtual_page_addresses = super().alloc_memory(process, memory)
+        virtual_page_addresses = super().alloc_memory(process, memory, **kwargs)
 
         for address in virtual_page_addresses:
             self.use(process, address)
