@@ -131,7 +131,7 @@ class MemoryManager(ABC):
         return False
 
     @abstractmethod
-    def use(self, process: Process, memory_page_address: str):
+    def use(self, process: Process, memory_page_address: int):
         """
         Utiliza uma página de memória em uma dado endereço.
         """

@@ -1,6 +1,4 @@
-from tkinter import Button, Frame, Label, Listbox, Scrollbar, Toplevel
-from typing import List, Optional, Tuple
-
+from tkinter import Frame, Listbox, Scrollbar, Toplevel
 from memory_paging import MemoryManager
 
 

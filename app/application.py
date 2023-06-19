@@ -22,7 +22,7 @@ class Application(Tk):
         real_memory_window_title: str = "Window",
         virtual_memory_window_title: str = "Window",
         size: tuple[int] = (1280, 720)
-        ):
+    ):
         super().__init__()
 
         self.__title = title
