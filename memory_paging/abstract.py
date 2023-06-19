@@ -69,12 +69,13 @@ class MemoryManager(ABC):
         Aloca um espaço na memória para o processo.
 
         :param dry_run: Apenas verifica se seria possível alocar mais memória para o processo.
-        """
+        """        
         memory_addresses = []
 
         total_used = memory + sum([self.page_size for pid, vmem_addr in self._virtual_memory_table if pid == process.id])
 
-        if total_used > self.page_per_process * self.page_size:  # Idealmente isso não deveria existir. Só existe porque um processo não roda se alguma página não estiver na RAM.
+        # Idealmente a verificação abaixo não deveria existir. Só existe porque um processo não roda se alguma página não estiver na RAM.
+        if total_used > self.page_per_process * self.page_size or total_used > self.__ram_memory_pages * self.page_size:
             raise OverflowError("Max amount of memory page exceeded.")
         
         if dry_run:

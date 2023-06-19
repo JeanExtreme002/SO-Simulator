@@ -61,7 +61,7 @@ class Application(Tk):
         self.__process_id_label.config(foreground = "black")
         self.__extra_memory_label.config(foreground = "black")
 
-        if not memory.replace("0", ""): return self.__extra_memory_label.config(foreground = "red")
+        if not memory: return self.__extra_memory_label.config(foreground = "red")
         if not process_id: return self.__process_id_label.config(foreground = "red")
 
         # Verifica se o processo existe e não está morto ou terminou.
@@ -266,7 +266,7 @@ class Application(Tk):
             self.__process_list_box.insert(0, string)
 
         for process, memory, time in self.__scheduled_processes:
-            string = f"Processo ID:{process.id} será adicionado à simulação em {time}s"
+            string = f"Processo ID:{process.id} será adicionado à fila de processos em {time}s"
             
             if self.__generate_log_file: self.__append_to_log_file(string)
             self.__process_list_box.insert("end", string)            
