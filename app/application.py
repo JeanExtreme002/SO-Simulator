@@ -174,6 +174,11 @@ class Application(Tk):
             self.__draw_grid(self.__last_process_list_length)
             return self.after(self.__on_update_interval, self.__on_update)
 
+        # Verifica os processo que estão congelados ou não.
+        if self.__freeze_process_on_page_fault:
+            for process in self.__process_list:
+                process.set_freeze(self.__memory_manager.has_page_fault(process))
+
         # Executa o próximo processo.
         result = self.__process_scheduler.run()
         process, asleep_processes, context_switching = (result[0], result[1], result[2]) if result is not None else (None, None, None)
@@ -534,7 +539,14 @@ class Application(Tk):
         self.__control_button.config(background="#87cefa" if self.__paused else "#ff6961")
         self.__control_button.config(text="Continuar Simulação" if self.__paused else "Pausar Simulação")
 
-    def run(self, process_scheduler: ProcessScheduler, memory_manager: MemoryManager, interval: int = 1000, generate_log_file: bool = False):
+    def run(
+        self,
+        process_scheduler: ProcessScheduler,
+        memory_manager: MemoryManager,
+        interval: int = 1000,
+        freeze_process_on_page_fault: bool = False,
+        generate_log_file: bool = False
+    ):
         """
         Executa a aplicação principal, com sua parte gráfica.
         """
@@ -542,6 +554,7 @@ class Application(Tk):
         self.__memory_manager = memory_manager
 
         self.__on_update_interval = interval
+        self.__freeze_process_on_page_fault = freeze_process_on_page_fault
         self.__generate_log_file = generate_log_file
 
         self.__real_memory_window = RealMemoryWindow(self.__real_memory_window_title)

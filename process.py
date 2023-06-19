@@ -38,13 +38,19 @@ class Process(object):
     def is_critical(self) -> int:
         return self.__is_critical
 
-    def is_finished(self) -> True:
+    def is_finished(self) -> bool:
         """
         Verifica se o processo encerrou completamente.
         """
         return self.__duration <= 0 or (self.has_died() and self.__is_critical)
 
-    def has_died(self) -> True:
+    def is_frozen(self) -> bool:
+        """
+        Verifica se o processo está congelado.
+        """
+        return self.__is_frozen
+
+    def has_died(self) -> bool:
         """
         Verifica se o tempo do deadline foi excedido.
         """
@@ -58,8 +64,14 @@ class Process(object):
         
         :raises: TimeoutError se o tempo do deadline for excedido.
         """
-        self.__duration -= time
+        if not self.__is_frozen: self.__duration -= time
         self.wait(time)
+
+    def set_freeze(self, freeze: bool):
+        """
+        Congela ou descongela o processo.
+        """
+        self.__is_frozen = freeze
 
     def wait(self, time: int = 1):
         """

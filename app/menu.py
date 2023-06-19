@@ -101,6 +101,7 @@ class MenuWindow(Tk):
 
         self.__closed = False
 
+        # Salva as configurações, caso desejado.
         if self.__save_config.get():
             with open(self.__CONFIG_FILENAME, "w") as file:
                 file.write(json.dumps({
@@ -111,6 +112,7 @@ class MenuWindow(Tk):
                     "ram_size": self.__entry_4.get(),
                     "page_size": self.__entry_5.get(),
                     "page_per_process": self.__entry_6.get(),
+                    "freeze_process": self.__freeze_process.get(),
                     "generate_log_file": self.__generate_log_file.get(),
                     "save_config": self.__save_config.get()
                 }, indent = " " * 4))
@@ -163,9 +165,11 @@ class MenuWindow(Tk):
         self.__entry_6.delete(0, "end")
         self.__entry_6.insert(0, str(data.get("page_per_process", "")))
 
+        self.__freeze_process_checkbutton.deselect()
         self.__generate_log_file_checkbutton.deselect()
         self.__save_config_checkbutton.deselect()
 
+        if data.get("freeze_process", False) is True: self.__freeze_process_checkbutton.select()
         if data.get("generate_log_file", True) is True: self.__generate_log_file_checkbutton.select()
         if data.get("save_config", False) is True: self.__save_config_checkbutton.select()
 
@@ -357,33 +361,45 @@ class MenuWindow(Tk):
         self.__entry_6.insert(0, str(self.__page_per_process))
         self.__entry_6.pack(side = "left", expand = True, fill = "x")
 
+        # Widgets para configuração de congelar um processo ou não quando uma de suas páginas não está na RAM.
+        self.__frame_8 = Frame(self.__main_frame)
+        self.__frame_8["bg"] = "white"
+        self.__frame_8.pack(expand = True, fill = "x")
+        self.__freeze_process = BooleanVar()
+
+        self.__freeze_process_checkbutton = Checkbutton(
+            self.__frame_8, text = "Congelar processo quando houver PageFault?",
+            background = "white", variable = self.__freeze_process
+        )
+        self.__freeze_process_checkbutton.pack(side = "left")
+
         # Label para separar as configurações de memória da configuração de geração de arquivo de log.
         self.__separator = Label(self.__main_frame, background = "white")
         self.__separator.pack()
 
         # Widgets para configuração de geração de arquivo de log ou não.
-        self.__frame_8 = Frame(self.__main_frame)
-        self.__frame_8["bg"] = "white"
-        self.__frame_8.pack(expand = True, fill = "x")
+        self.__frame_9 = Frame(self.__main_frame)
+        self.__frame_9["bg"] = "white"
+        self.__frame_9.pack(expand = True, fill = "x")
 
         self.__generate_log_file = BooleanVar()
 
         self.__generate_log_file_checkbutton = Checkbutton(
-            self.__frame_8, text = "Gerar arquivo de log?",
+            self.__frame_9, text = "Gerar arquivo de log?",
             background = "white", variable = self.__generate_log_file
         )
         self.__generate_log_file_checkbutton.select()
         self.__generate_log_file_checkbutton.pack(side = "left")
 
         # Widgets para configuração de salvar as configurações ou não.
-        self.__frame_9 = Frame(self.__main_frame)
-        self.__frame_9["bg"] = "white"
-        self.__frame_9.pack(expand = True, fill = "x")
+        self.__frame_10 = Frame(self.__main_frame)
+        self.__frame_10["bg"] = "white"
+        self.__frame_10.pack(expand = True, fill = "x")
 
         self.__save_config = BooleanVar()
 
         self.__save_config_checkbutton = Checkbutton(
-            self.__frame_9, text = "Salvar configurações?",
+            self.__frame_10, text = "Salvar configurações?",
             background = "white", variable = self.__save_config
         )
         self.__save_config_checkbutton.pack(side = "left")
@@ -397,6 +413,12 @@ class MenuWindow(Tk):
 
         # Carrega as informações do arquivo de configurações.
         self.__load_config_from_file()
+
+    def get_freeze_process_config(self) -> bool:
+        """
+        Retorna um booleano indicando se o processo deve congelar ou não quando uma de suas páginas não estiverem na RAM.
+        """
+        return self.__freeze_process.get()
 
     def get_log_config(self) -> bool:
         """

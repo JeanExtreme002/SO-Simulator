@@ -14,12 +14,10 @@ class MemoryManager(ABC):
 
         self.__ram_memory_pages = ram_memory_size // page_size
 
-        self._page_usage_table = dict()  # {<ID Processo> : Quantidade de páginas}
-
         self._real_memory_table: List[Tuple[Optional[Process], Any, datetime, datetime]] = [  # Lista de (Processo, Valor, Tempo de Criação, Tempo do Último uso)
             (None, None, datetime.now(), datetime.now()) for i in range(self.__ram_memory_pages)
         ]
-        self._virtual_memory_table: Dict[Tuple[int, int], Optional[int]] = dict()  # {(<ID Processo>, VMEM_ADDRESS) : RMEM_ADDRESS}
+        self._virtual_memory_table: Dict[Tuple[int, int], Optional[int]] = dict()  # {(<ID Processo>, VMEM_ADDRESS) : RMEM_ADDRESS}        
         self.__incremented_virutal_page_address = 0
 
     @property
@@ -116,6 +114,15 @@ class MemoryManager(ABC):
             table.append((key[0], key[1], value, last_used_at))
             
         return table
+
+    def has_page_fault(self, process: Process):
+        """
+        Verifica se um dado processo possui páginas que não estão na memória principal.
+        """
+        for key, value in self._virtual_memory_table.items():
+            if key[0] == process.id and value is None:
+                return True
+        return False
 
     @abstractmethod
     def use(self, process: Process, memory_page_address: str):
