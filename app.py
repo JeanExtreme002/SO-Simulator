@@ -19,5 +19,6 @@ if __name__ == "__main__":
             process_scheduler = process_scheduler,
             memory_manager = memory_manager,
             freeze_process_on_page_fault = menu.get_freeze_process_config(),
-            generate_log_file = menu.get_log_config()
+            generate_log_file = menu.get_log_config(),
+            interval=menu.get_update_interval()
         )

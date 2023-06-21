@@ -23,7 +23,7 @@ class MenuWindow(Tk):
     __NOT_REQUIRED_MESSAGE = "(not required)"
     __CONFIG_FILENAME = "config.cfg"
 
-    def __init__(self, title: str = "Window", size: tuple[int] = (350, 450)):
+    def __init__(self, title: str = "Window", size: tuple[int] = (350, 550)):
         super().__init__()
         self.__size = size
 
@@ -38,6 +38,7 @@ class MenuWindow(Tk):
         self.__memory_page_size = 4 * 1000
         self.__page_per_process = 10
 
+        self.__update_interval = 1000
         self.__closed = True
 
         self.title(title)
@@ -58,6 +59,7 @@ class MenuWindow(Tk):
         self.__ram_memory_size = self.__entry_4.get()
         self.__memory_page_size = self.__entry_5.get()
         self.__page_per_process = self.__entry_6.get()
+        self.__update_interval = self.__entry_7.get()
 
         # Deve haver um quantum e um chaveamento para os algoritmos RR e EDF.
         if self.__cpu_algorithm in [RoundRobinProcessScheduler, EDFProcessScheduler]:
@@ -82,7 +84,7 @@ class MenuWindow(Tk):
         self.__label_6["fg"] = "black"
         self.__label_7["fg"] = "black"
 
-        # Verifica se o usuário definiu as configurações de memória.
+        # Verifica se o usuário definiu as configurações nas entries corretamente.
         if not self.__ram_memory_size or not self.__ram_memory_size.replace("0", ""):
             self.__label_5["fg"] = "red"
             return
@@ -95,9 +97,14 @@ class MenuWindow(Tk):
             self.__label_7["fg"] = "red"
             return
 
+        if not self.__update_interval or not self.__update_interval.replace("0", ""):
+            self.__label_8["fg"] = "red"
+            return
+
         self.__ram_memory_size = int(self.__ram_memory_size)
         self.__memory_page_size = int(self.__memory_page_size)
         self.__page_per_process = int(self.__page_per_process)
+        self.__update_interval = int(self.__update_interval)
 
         self.__closed = False
 
@@ -114,7 +121,8 @@ class MenuWindow(Tk):
                     "page_per_process": self.__entry_6.get(),
                     "freeze_process": self.__freeze_process.get(),
                     "generate_log_file": self.__generate_log_file.get(),
-                    "save_config": self.__save_config.get()
+                    "save_config": self.__save_config.get(),
+                    "update_interval": self.__entry_7.get()
                 }, indent = " " * 4))
 
         self.destroy()
@@ -164,6 +172,9 @@ class MenuWindow(Tk):
         self.__entry_5.insert(0, str(data.get("page_size", "")))
         self.__entry_6.delete(0, "end")
         self.__entry_6.insert(0, str(data.get("page_per_process", "")))
+
+        self.__entry_7.delete(0, "end")
+        self.__entry_7.insert(0, str(data.get("update_interval", self.__update_interval)))
 
         self.__freeze_process_checkbutton.deselect()
         self.__generate_log_file_checkbutton.deselect()
@@ -373,33 +384,50 @@ class MenuWindow(Tk):
         )
         self.__freeze_process_checkbutton.pack(side = "left")
 
-        # Label para separar as configurações de memória da configuração de geração de arquivo de log.
-        self.__separator = Label(self.__main_frame, background = "white")
-        self.__separator.pack()
+        # Label para separar as configurações de memória das configurações gráficas.
+        self.__separator_2 = Label(self.__main_frame, background = "white")
+        self.__separator_2.pack()
 
-        # Widgets para configuração de geração de arquivo de log ou não.
+        # Widgets para configurar a taxa de atualização do simulador.
         self.__frame_9 = Frame(self.__main_frame)
         self.__frame_9["bg"] = "white"
-        self.__frame_9.pack(expand = True, fill = "x")
+        self.__frame_9.pack(pady = 10, expand = True, fill = "x")
+
+        self.__label_8 = Label(self.__frame_9, text = "Taxa de Atualização (ms > 0):", bg = "white")
+        self.__label_8.pack(side = "left")
+
+        self.__entry_7 = Entry(self.__frame_9, width = 4)
+        self.__entry_7.config(validate = "key", validatecommand = (self.__entry_reg_2, "%P"))
+        self.__entry_7.insert(0, str(self.__update_interval))
+        self.__entry_7.pack(side = "left", expand = True, fill = "x")
+
+        # Label para separar as configurações gráficas das configurações de geração de arquivo.
+        self.__separator_3 = Label(self.__main_frame, background = "white")
+        self.__separator_3.pack()
+
+        # Widgets para configuração de geração de arquivo de log ou não.
+        self.__frame_10 = Frame(self.__main_frame)
+        self.__frame_10["bg"] = "white"
+        self.__frame_10.pack(expand = True, fill = "x")
 
         self.__generate_log_file = BooleanVar()
 
         self.__generate_log_file_checkbutton = Checkbutton(
-            self.__frame_9, text = "Gerar arquivo de log?",
+            self.__frame_10, text = "Gerar arquivo de log?",
             background = "white", variable = self.__generate_log_file
         )
         self.__generate_log_file_checkbutton.select()
         self.__generate_log_file_checkbutton.pack(side = "left")
 
         # Widgets para configuração de salvar as configurações ou não.
-        self.__frame_10 = Frame(self.__main_frame)
-        self.__frame_10["bg"] = "white"
-        self.__frame_10.pack(expand = True, fill = "x")
+        self.__frame_11 = Frame(self.__main_frame)
+        self.__frame_11["bg"] = "white"
+        self.__frame_11.pack(expand = True, fill = "x")
 
         self.__save_config = BooleanVar()
 
         self.__save_config_checkbutton = Checkbutton(
-            self.__frame_10, text = "Salvar configurações?",
+            self.__frame_11, text = "Salvar configurações?",
             background = "white", variable = self.__save_config
         )
         self.__save_config_checkbutton.pack(side = "left")
@@ -428,15 +456,21 @@ class MenuWindow(Tk):
 
     def get_memory_manager(self) -> MemoryManager:
         """
-        Retorna o gerenciador de memória com base nas configurações inseridas pelo usuário.
+        Retorna o gerenciador de memória, com base nas configurações inseridas pelo usuário.
         """
         return self.__paging_algorithm(self.__ram_memory_size, self.__memory_page_size, self.__page_per_process)
 
     def get_process_scheduler(self) -> ProcessScheduler:
         """
-        Retorna o escalonador com base nas configurações inseridas pelo usuário.
+        Retorna o escalonador, com base nas configurações inseridas pelo usuário.
         """
         return self.__cpu_algorithm(self.__quantum, self.__context_switching)
+
+    def get_update_interval(self) -> int:
+        """
+        Retorna a taxa de atualização.
+        """
+        return self.__update_interval
 
     def run(self):
         """
