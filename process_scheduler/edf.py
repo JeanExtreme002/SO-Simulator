@@ -36,11 +36,8 @@ class EDFProcessScheduler(ProcessScheduler):
 
                 return self.__process_running, self.__queue[1:], True
 
-            if len(self.__queue) <= 1:
-                self.__queue = self.processes
-                self.__queue.sort(key = lambda process: process.deadline - process.duration)
-            else:
-                self.__queue = self.__queue[1:]
+            self.__queue = self.processes.copy()
+            self.__queue.sort(key = lambda process: process.deadline - process.duration)
 
             self.__process_running = self.__queue[0]
             self.__context_switching_time = 0
