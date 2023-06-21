@@ -79,10 +79,10 @@ class Application(Tk):
         """
         Adiciona uma instância de processo para o simulador.
         """
+        process.index = len(self.__process_history)
+
         try: self.__memory_manager.alloc_memory(process, memory)
         except OverflowError: return self.__memory_label.config(foreground = "red")
-        
-        self.__process_count += 1
 
         color = (random.randint(100, 200), random.randint(100, 200), random.randint(100, 200))
         process.color = f'#{color[0]:02x}{color[1]:02x}{color[2]:02x}'
@@ -129,7 +129,8 @@ class Application(Tk):
             ignore_deadline_error = True,
             is_critical = self.__is_critical.get()
         )
-        process.index = len(self.__process_history)
+
+        self.__process_count += 1
 
         if schedule > 0:
             try:
@@ -205,7 +206,7 @@ class Application(Tk):
             self.__scheduled_processes.remove(value)
 
         # Se não houver mais processos para serem mostrados, apenas a grade será desenhada.
-        if len(self.__process_history) == 0:
+        if len(self.__process_history) == 0 and not self.__scheduled_processes:
             self.__draw_grid(self.__last_process_list_length)
             return self.after(self.__on_update_interval, self.__on_update)
 
