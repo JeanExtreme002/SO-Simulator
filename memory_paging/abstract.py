@@ -98,7 +98,7 @@ class MemoryManager(ABC):
         keys = list()
         
         for key, value in self._virtual_memory_table.items():
-            if key[0] == process.id:
+            if key[0] == process.id and value is not None:
                 self._real_memory_table[value] = (process, None, datetime.now(), datetime.now())
                 keys.append(key)
 
