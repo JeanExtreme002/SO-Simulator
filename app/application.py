@@ -369,11 +369,11 @@ class Application(Tk):
         self.__use_process_id_label.config(foreground = "black")
         self.__memory_address_label.config(foreground = "black")
 
-        if not page_address:
-            return
-
         if not process_id:
             return self.__use_process_id_label.config(foreground = "red")
+
+        if not page_address:
+            return self.__memory_address_label.config(foreground = "red")
 
         # Verifica se o processo existe.
         for process in self.__process_list:
@@ -583,7 +583,7 @@ class Application(Tk):
         self.__use_memory_frame["bg"] = "white"
         self.__use_memory_frame.pack(side = "left", padx = 10)
 
-        self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página: ", background = "white")
+        self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página Virtual: ", background = "white")
         self.__memory_address_label.pack(side = "left")
 
         self.__entry_reg_2 = self.register(self.__validate_hex_entry)
