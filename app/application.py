@@ -47,6 +47,8 @@ class Application(Tk):
 
         self.__last_process_list_length = self.__history_min_rows
 
+        self.__old_execution_time_list: List[int] = list()
+
         self.title(title)
         self.resizable(False, False)
         self.geometry("{}x{}".format(*size))
@@ -245,6 +247,7 @@ class Application(Tk):
         # Remove processos que já saíram do histórico.
         for process in self.__process_list.copy():
             if process.is_finished() and not any(self.__process_history[process.index]):
+                self.__old_execution_time_list.append(process.get_absolute_duration())
                 self.__remove_process(process)
 
         # Atualiza o Listbox com as informações dos processos.
@@ -311,8 +314,11 @@ class Application(Tk):
 
         self.__draw_grid(self.__last_process_list_length)
 
-        # Move o histórico para a esquerda e repete a execução do método, após um determinado tempo.
+        # Move o histórico para a esquerda e atualiza o tempo médio de execução dos processos.
         self.__shift_process_history()
+        self.__update_average_execution_time()
+
+        # Repete a execução do método, após um determinado tempo.
         self.after(self.__on_update_interval, self.__on_update)
 
     def __remove_process(self, process: Process):
@@ -339,6 +345,20 @@ class Application(Tk):
                 self.__process_history[y][x] = self.__process_history[y][x + 1]
             self.__process_history[y][self.__history_length - 1] = None
 
+    def __update_average_execution_time(self):
+        """
+        Atualiza o tempo médio de execução dos processos.
+        """
+        average_execution_time = sum(self.__old_execution_time_list)
+        average_execution_time += sum([process.get_absolute_duration() for process in self.__process_list])
+
+        total = (len(self.__old_execution_time_list) + len(self.__process_list))
+
+        average_execution_time = (average_execution_time / total) if total > 0 else 0.0
+        average_execution_time = round(average_execution_time, 2)
+
+        self.__average_execution_time_label.config(text = "Tempo Médio de Execução: " + str(average_execution_time))
+
     def __use_memory_page(self):
         """
         Utiliza uma página de memória de um processo.
@@ -349,11 +369,11 @@ class Application(Tk):
         self.__use_process_id_label.config(foreground = "black")
         self.__memory_address_label.config(foreground = "black")
 
-        if not page_address:
-            return
-
         if not process_id:
             return self.__use_process_id_label.config(foreground = "red")
+
+        if not page_address:
+            return self.__memory_address_label.config(foreground = "red")
 
         # Verifica se o processo existe.
         for process in self.__process_list:
@@ -388,13 +408,18 @@ class Application(Tk):
         # Widgets para mostrar o histórico.
         self.__canvas_label_frame = Frame(self.__main_frame)
         self.__canvas_label_frame["bg"] = "white"
-        self.__canvas_label_frame.pack(expand = True, fill ="x")
+        self.__canvas_label_frame.pack(padx = 10, expand = True, fill ="x")
 
         self.__canvas_label = Label(
             self.__canvas_label_frame, text ="Histórico do estado dos processos (por segundo).",
             background = "white"
         )
         self.__canvas_label.pack(side = "left")
+
+        # Cria widget para mostrar o tempo médio de execução dos processo.
+        self.__average_execution_time_label = Label(self.__canvas_label_frame, background = "white")
+        self.__update_average_execution_time()
+        self.__average_execution_time_label.pack(side = "right")
 
         self.__canvas_width = (
             self.__size[0] * 0.95 - (self.__size[0] * 0.95 % self.__history_length)
@@ -412,7 +437,7 @@ class Application(Tk):
         # Widgets para mostrar a lista de processos e seus estados em texto.
         self.__process_list_label_frame = Frame(self.__main_frame)
         self.__process_list_label_frame["bg"] = "white"
-        self.__process_list_label_frame.pack(expand = True, fill ="x")
+        self.__process_list_label_frame.pack(padx = 10, expand = True, fill ="x")
 
         self.__process_list_label = Label(
             self.__process_list_label_frame, text ="Processos:",
@@ -550,14 +575,14 @@ class Application(Tk):
         self.__use_memory_frame["bg"] = "white"
         self.__use_memory_frame.pack(side = "left", padx = 10)
 
-        self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página: ", background = "white")
+        self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página Virtual: ", background = "white")
         self.__memory_address_label.pack(side = "left")
 
         self.__memory_address_entry = Entry(self.__use_memory_frame)
         self.__memory_address_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__memory_address_entry.pack(side = "left")
 
-        # Cria botão para controlar a execução do simulador.
+        # # Cria botão para controlar a execução do simulador.
         self.__control_frame = Frame(self.__main_frame)
         self.__control_frame["bg"] = "white"
         self.__control_frame.pack(side = "left", expand = True, fill = "x")

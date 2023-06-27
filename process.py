@@ -18,6 +18,8 @@ class Process(object):
         self.__deadline = deadline
         self.__ignore_deadline_error = ignore_deadline_error
         self.__is_critical = is_critical
+
+        self.__absolute_duration = 0
         self.__is_frozen = False
 
     def __str__(self):
@@ -38,6 +40,12 @@ class Process(object):
     @property
     def is_critical(self) -> int:
         return self.__is_critical
+
+    def get_absolute_duration(self) -> int:
+        """
+        Retorna o tempo total que o processo ficou esperando ou executando.
+        """
+        return self.__absolute_duration
 
     def is_finished(self) -> bool:
         """
@@ -81,7 +89,10 @@ class Process(object):
 
         :raises: TimeoutError se o tempo do deadline for excedido.
         """
-        if self.__deadline is None: return
+        self.__absolute_duration += time
+
+        if self.__deadline is None:
+            return
 
         self.__deadline -= time
 
