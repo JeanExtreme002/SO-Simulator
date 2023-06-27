@@ -374,14 +374,6 @@ class Application(Tk):
             if char not in "0123456789": return False
         return True
 
-    def __validate_hex_entry(self, string):
-        """
-        Valida a entrada do usuário na Entry.
-        """
-        for char in string.lower():
-            if char not in "x0123456789abcdef": return False
-        return True
-
     def build(self):
         """
         Constrói a parte gráfica da janela.
@@ -561,10 +553,8 @@ class Application(Tk):
         self.__memory_address_label = Label(self.__use_memory_frame, text = "Endereço da Página: ", background = "white")
         self.__memory_address_label.pack(side = "left")
 
-        self.__entry_reg_2 = self.register(self.__validate_hex_entry)
-
         self.__memory_address_entry = Entry(self.__use_memory_frame)
-        self.__memory_address_entry.config(validate="key", validatecommand=(self.__entry_reg_2, "%P"))
+        self.__memory_address_entry.config(validate="key", validatecommand=(self.__entry_reg, "%P"))
         self.__memory_address_entry.pack(side = "left")
 
         # Cria botão para controlar a execução do simulador.

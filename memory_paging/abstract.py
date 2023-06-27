@@ -18,7 +18,7 @@ class MemoryManager(ABC):
             (None, None, datetime.now(), datetime.now()) for i in range(self.__ram_memory_pages)
         ]
         self._virtual_memory_table: Dict[Tuple[int, int], Optional[int]] = dict()  # {(<ID Processo>, VMEM_ADDRESS) : RMEM_ADDRESS}        
-        self.__incremented_virutal_page_address = 0
+        self.__incremented_virtual_page_address = 0
 
     @property
     def name(self) -> str:
@@ -82,8 +82,8 @@ class MemoryManager(ABC):
             return list()
 
         while memory > 0:
-            virtual_address = self.__incremented_virutal_page_address
-            self.__incremented_virutal_page_address += 1
+            virtual_address = self.__incremented_virtual_page_address
+            self.__incremented_virtual_page_address += 1
 
             self._virtual_memory_table[(process.id, virtual_address)] = None
             memory_addresses.append(virtual_address)
