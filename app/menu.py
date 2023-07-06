@@ -211,7 +211,7 @@ class MenuWindow(Tk):
         self.__label_2["fg"] = "black"
         self.__label_3["fg"] = "black"
 
-        self.__menu_button_1.config(text = ["FIFO", "SFJ", "RR", "EDF"][index])
+        self.__menu_button_1.config(text = ["FIFO", "SJF", "RR", "EDF"][index])
 
     def __set_memory_algorithm(self, index: int):
         """
